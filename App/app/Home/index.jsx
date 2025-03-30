@@ -1,5 +1,6 @@
 import { BottomNavigation, Text } from "react-native-paper";
 import { useState } from "react";
+import Forum from "@/Components/Forum";
 
 const Home = () => {
   const [index, setIndex] = useState(2);
@@ -40,7 +41,7 @@ const Home = () => {
     analytics: () => <Text>Market analytics</Text>,
     marketplace: () => <Text>Community</Text>,
     bookkeeping: () => <Text>Community</Text>,
-    forum: () => <Text>Community</Text>,
+    forum: () => <Forum />,
     management: () => <Text>Community</Text>,
   });
 
