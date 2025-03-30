@@ -117,7 +117,6 @@ export default function Forum() {
                             right={activity.phone ? () => (
                                 <IconButton
                                     icon="phone"
-                                    color={theme.colors.primary}
                                     onPress={() => Linking.openURL(`tel:${activity.phone}`)}
                                 />
                             ) : undefined}
