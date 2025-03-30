@@ -15,7 +15,7 @@ const AppBar = () => {
     <>
       <Appbar.Header statusBarHeight={top}>
         {pathname != "/" && pathname != "/Home" && <Appbar.BackAction onPress={() => router.back()} />}
-        <Appbar.Content title="CommUnity" titleStyle={{ fontWeight: "bold" }} />
+        <Appbar.Content title="SHGConnect" titleStyle={{ fontWeight: "bold" }} />
         <Appbar.Action icon="bell" onPress={showDialog} />
         <Appbar.Action icon="account-circle" onPress={() => {}} />
       </Appbar.Header>
