@@ -1,6 +1,7 @@
 import { BottomNavigation, Text } from "react-native-paper";
 import { useState } from "react";
 import MarketPlace from "@/Components/Marketplace";
+import Bookkeeping from "@/Components/Bookkeeping";
 
 const Home = () => {
   const [index, setIndex] = useState(2);
@@ -29,20 +30,13 @@ const Home = () => {
       focusedIcon: "account-group",
       unfocusedIcon: "account-group-outline",
     },
-    {
-      key: "management",
-      title: "Management",
-      focusedIcon: "account-circle",
-      unfocusedIcon: "account-circle-outline",
-    },
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
-    analytics: () => <MarketPlace />,
-    marketplace: () => <Text>Community</Text>,
-    bookkeeping: () => <Text>Community</Text>,
+    analytics: () => <Text>Community</Text>,
+    marketplace: () => <MarketPlace />,
+    bookkeeping: () => <Bookkeeping />,
     forum: () => <Text>Community</Text>,
-    management: () => <Text>Community</Text>,
   });
 
   return (
