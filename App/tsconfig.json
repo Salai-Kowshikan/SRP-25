@@ -2,12 +2,15 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
-    "jsx": "react-jsx", 
+    "jsx": "react-jsx",
     "moduleResolution": "node",
     "target": "esnext",
     "module": "esnext",
     "strict": true
-  }
+  },
+  "extends": "expo/tsconfig.base"
 }
