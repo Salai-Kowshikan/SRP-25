@@ -1,7 +1,9 @@
 import { BottomNavigation, Text } from "react-native-paper";
 import { useState } from "react";
+import Forum from "@/Components/Forum";
 import MarketPlace from "@/Components/Marketplace";
 import Bookkeeping from "@/Components/Bookkeeping";
+
 
 const Home = () => {
   const [index, setIndex] = useState(2);
@@ -33,10 +35,11 @@ const Home = () => {
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
-    analytics: () => <Text>Community</Text>,
+    analytics: () => <Text>Market analytics</Text>,
+    forum: () => <Forum />,
+    management: () => <Text>Community</Text>,
     marketplace: () => <MarketPlace />,
     bookkeeping: () => <Bookkeeping />,
-    forum: () => <Text>Community</Text>,
   });
 
   return (
