@@ -83,3 +83,44 @@ class Database:
         finally:
             if conn:
                 conn.close()
+    @staticmethod
+    def update_product(product_id, product_data):
+        """
+        Update an existing product in the products table based on product_id
+        """
+        conn = None
+        try:
+            conn = Database.get_connection()
+            if not conn:
+                return {'error': 'Database connection failed'}
+            
+            with conn.cursor() as cur:
+                query = """
+                    UPDATE products
+                    SET 
+                        "shgId" = %(shgId)s,
+                        "productName" = %(productName)s,
+                        quantity = %(quantity)s,
+                        threshold = %(threshold)s,
+                        "currentPrice" = %(currentPrice)s
+                    WHERE id = %(id)s
+                    RETURNING *;
+                """
+                product_data['id'] = product_id
+                cur.execute(query, product_data)
+                updated_record = cur.fetchone()
+                conn.commit()
+                
+                return {'data': dict(updated_record) if updated_record else None}
+        
+        except psycopg2.Error as e:
+            if conn:
+                conn.rollback()
+            return {'error': f"Database error: {e.pgerror}"}
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            return {'error': f"Operation failed: {str(e)}"}
+        finally:
+            if conn:
+                conn.close()
