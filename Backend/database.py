@@ -38,3 +38,48 @@ class Database:
             if conn:
                 conn.close()
                 print("Database connection closed")
+    
+    @staticmethod
+    def insert_product(product_data):
+        """
+        Insert a new product into the products table
+        """
+        conn = None
+        try:
+            conn = Database.get_connection()
+            if not conn:
+                return {'error': 'Database connection failed'}
+                
+            with conn.cursor() as cur:
+                query = """
+                    INSERT INTO products (
+                        "shgId", 
+                        "productName", 
+                        quantity, 
+                        threshold, 
+                        "currentPrice"
+                    ) VALUES (
+                        %(shgId)s, 
+                        %(productName)s, 
+                        %(quantity)s, 
+                        %(threshold)s, 
+                        %(currentPrice)s
+                    ) RETURNING *;
+                """
+                cur.execute(query, product_data)
+                inserted_record = cur.fetchone()
+                conn.commit()
+                
+                return {'data': dict(inserted_record) if inserted_record else None}
+                
+        except psycopg2.Error as e:
+            if conn:
+                conn.rollback()
+            return {'error': f"Database error: {e.pgerror}"}
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            return {'error': f"Operation failed: {str(e)}"}
+        finally:
+            if conn:
+                conn.close()

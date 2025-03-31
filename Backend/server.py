@@ -1,18 +1,16 @@
 from flask import Flask
 from routes.accounts import accounts_bp
+from routes.addProducts import add_products_bp
 
 app = Flask(__name__)
 
-# Register blueprint
 app.register_blueprint(accounts_bp, url_prefix='/api/accounts')
+
+app.register_blueprint(add_products_bp, url_prefix='/api')
 
 @app.route('/')
 def health_check():
     return {"status": "running", "database": "connected"}
 
-if __name__ == '__main__':
-    # First test the connection
-    from config import DB_CONFIG
-    print("DB Configuration:", {k:v for k,v in DB_CONFIG.items() if k != 'password'})
-    
+if __name__ == '__main__':    
     app.run(debug=True)
