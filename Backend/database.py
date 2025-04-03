@@ -124,3 +124,48 @@ class Database:
         finally:
             if conn:
                 conn.close()
+
+    @staticmethod
+    def get_meetings_by_timestamp(filters):
+        """
+        Fetch meetings filtered by created_at timestamp
+        Args:
+            filters (dict): Contains 'shgId', optionally 'year' and 'month'
+        Returns:
+            dict: {'data': list[dict]} on success, {'error': str} on failure
+        """
+        conn = None
+        try:
+            conn = Database.get_connection()
+            if not conn:
+                return {'error': 'Database connection failed'}
+                
+            with conn.cursor() as cur:
+                query = """
+                    SELECT * FROM meetings 
+                    WHERE "shgId" = %(shgId)s
+                """
+                params = {'shgId': filters['shgId']}
+                
+                if 'year' in filters:
+                    query += " AND EXTRACT(YEAR FROM created_at) = %(year)s"
+                    params['year'] = filters['year']
+                
+                if 'month' in filters:
+                    query += " AND EXTRACT(MONTH FROM created_at) = %(month)s"
+                    params['month'] = filters['month']
+                
+                query += " ORDER BY created_at DESC;"
+                
+                cur.execute(query, params)
+                meetings = cur.fetchall()
+                
+                return {'data': [dict(meeting) for meeting in meetings]}
+                
+        except psycopg2.Error as e:
+            return {'error': f"Database error: {e.pgerror}"}
+        except Exception as e:
+            return {'error': f"Operation failed: {str(e)}"}
+        finally:
+            if conn:
+                conn.close()
