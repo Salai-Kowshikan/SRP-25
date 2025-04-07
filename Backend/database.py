@@ -83,6 +83,7 @@ class Database:
         finally:
             if conn:
                 conn.close()
+    
     @staticmethod
     def update_product(product_id, product_data):
         """
@@ -161,6 +162,32 @@ class Database:
                 meetings = cur.fetchall()
                 
                 return {'data': [dict(meeting) for meeting in meetings]}
+                
+        except psycopg2.Error as e:
+            return {'error': f"Database error: {e.pgerror}"}
+        except Exception as e:
+            return {'error': f"Operation failed: {str(e)}"}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_all_products():
+        """
+        Fetch all products from the products table
+        """
+        conn = None
+        try:
+            conn = Database.get_connection()
+            if not conn:
+                return {'error': 'Database connection failed'}
+                
+            with conn.cursor() as cur:
+                query = "SELECT * FROM products;"
+                cur.execute(query)
+                products = cur.fetchall()
+                
+                return {'data': [dict(product) for product in products]}
                 
         except psycopg2.Error as e:
             return {'error': f"Database error: {e.pgerror}"}

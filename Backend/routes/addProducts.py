@@ -105,3 +105,25 @@ def edit_product(product_id):
             'error': 'An unexpected error occurred',
             'details': str(e)
         }), 500
+
+@add_products_bp.route('/getProducts', methods=['GET'])
+def get_products():
+    try:
+        result = Database.get_all_products()
+        
+        if result.get('error'):
+            return jsonify({
+                'error': 'Failed to fetch products',
+                'details': result['error']
+            }), 500
+        
+        return jsonify({
+            'message': 'Products fetched successfully',
+            'data': result.get('data', [])
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'An unexpected error occurred',
+            'details': str(e)
+        }), 500
