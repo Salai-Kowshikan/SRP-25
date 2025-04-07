@@ -8,8 +8,8 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS
 
 app.register_blueprint(accounts_bp, url_prefix='/api/accounts')
-app.register_blueprint(add_products_bp, url_prefix='/api/products')
-app.register_blueprint(meetings_bp, url_prefix='/api/meetings')
+app.register_blueprint(add_products_bp, url_prefix='/api')
+app.register_blueprint(meetings_bp, url_prefix='/api')
 
 @app.route('/')
 def health_check():
