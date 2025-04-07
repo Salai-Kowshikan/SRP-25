@@ -6,6 +6,7 @@ meetings_bp = Blueprint('meetings', __name__, url_prefix='/api')
 
 @meetings_bp.route('/<string:shg_id>/meeting', methods=['GET'])
 def get_meetings(shg_id):
+    print(f"Received request for SHG ID meetings: {shg_id}")
     try:
         month = request.args.get('month', type=int)
         year = request.args.get('year', type=int)

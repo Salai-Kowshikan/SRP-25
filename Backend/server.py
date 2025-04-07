@@ -5,7 +5,7 @@ from routes.addProducts import add_products_bp
 from routes.getMeetingDetails import meetings_bp
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)  # Allow all origins and credentials
 
 app.register_blueprint(accounts_bp, url_prefix='/api/accounts')
 app.register_blueprint(add_products_bp, url_prefix='/api')
