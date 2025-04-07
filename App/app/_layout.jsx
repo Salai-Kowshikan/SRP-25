@@ -1,8 +1,7 @@
-import { Slot, Stack } from "expo-router";
+import {  Stack } from "expo-router";
 import { PaperProvider, MD3LightTheme } from "react-native-paper";
 import AppBar from "@/Components/UI/AppBar";
-import { AuthProvider } from "@/contexts/AuthContext";
-
+import Loader from "@/Components/UI/Loader";
 const theme = {
   ...MD3LightTheme,
   colors: {
@@ -53,10 +52,9 @@ function RootLayout() {
   return (
     <>
       <PaperProvider theme={theme}>
-        <AuthProvider>
           <AppBar />
           <Stack screenOptions={{ headerShown: false }} />
-        </AuthProvider>
+          <Loader />
       </PaperProvider>
     </>
   );

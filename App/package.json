@@ -40,7 +40,8 @@
     "react-native-svg": "15.8.0",
     "react-native-upi-payment": "^1.0.5",
     "react-native-web": "~0.19.13",
-    "yup": "^1.4.0"
+    "yup": "^1.4.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
