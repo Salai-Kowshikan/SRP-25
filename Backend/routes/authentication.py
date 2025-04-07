@@ -28,9 +28,9 @@ def login_endpoint():
         if not username or not password or is_shg is None:
             return jsonify({"success": False, "error": "Username, password, and is_shg are required"}), 400
 
-        print(f"Received login request for username: {username}, is_shg: {is_shg}")  # Debug print
+        print(f"Received login request for username: {username}, is_shg: {is_shg}")
         result, status_code = login_user(username, password, is_shg)
         return jsonify(result), status_code
     except Exception as e:
-        print(f"Error in login endpoint: {e}")  # Debug print
+        print(f"Error in login endpoint: {e}")
         return jsonify({"error": str(e)}), 500

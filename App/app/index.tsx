@@ -6,7 +6,6 @@ import {
   Switch,
   Text,
   SegmentedButtons,
-  HelperText,
   Snackbar,
 } from "react-native-paper";
 import { useRouter } from "expo-router";
@@ -19,8 +18,8 @@ export default function Main() {
   const [password, setPassword] = useState("");
   const [isShgUser, setIsShgUser] = useState(false);
   const [mode, setMode] = useState("login");
-  const [error, setError] = useState({ username: "", password: "" });
   const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const setLoading = useLoadingStore((state) => state.setLoading);
   const resetLoading = useLoadingStore((state) => state.resetLoading);
@@ -33,7 +32,12 @@ export default function Main() {
     if (!password) errors.password = "Password cannot be empty.";
     else if (!isPasswordValid)
       errors.password = "Password must be at least 8 characters long.";
-    setError(errors);
+
+    if (errors.username || errors.password) {
+      setSnackbarMessage(errors.username || errors.password);
+      setSnackbarVisible(true);
+    }
+
     return !errors.username && !errors.password;
   };
 
@@ -48,19 +52,21 @@ export default function Main() {
         is_shg: isShgUser,
       });
 
-      if (response.status === 200) {
+      if (response.data.success === true) {
         console.log("Login successful:", response.data);
+        setSnackbarMessage("Login successful!");
         setSnackbarVisible(true);
-        router.replace("/Home")
+        setTimeout(() => {
+          router.replace("/Home");
+        }, 1000);
       } else {
-        setError(response.data.error || "Login failed.");
+        setSnackbarMessage(response.data.error || "Login failed.");
+        setSnackbarVisible(true);
       }
     } catch (err) {
       console.error(err);
-      setError({
-        username: "",
-        password: "An error occurred. Please try again.",
-      });
+      setSnackbarMessage("An error occurred. Please try again.");
+      setSnackbarVisible(true);
     } finally {
       resetLoading();
     }
@@ -71,26 +77,26 @@ export default function Main() {
 
     setLoading(true);
     try {
-      console.log("Registering user:", { username, password, isShgUser });
+      console.log("Registering user:", { username, password });
       const response = await api.post("/auth/register", {
         username,
         password,
-        is_shg: isShgUser,
+        is_shg: false,
       });
       console.log("Register response:", response.data);
 
       if (response.data.success === true) {
         console.log("Registration successful:", response.data);
+        setSnackbarMessage("Registration successful!");
         setSnackbarVisible(true);
       } else if (response.data.success === false) {
-        setError({ username: response.data.error, password: "" });
+        setSnackbarMessage(response.data.error);
+        setSnackbarVisible(true);
       }
     } catch (err) {
       console.error(err);
-      setError({
-        username: "",
-        password: "An error occurred. Please try again.",
-      });
+      setSnackbarMessage("An error occurred. Please try again.");
+      setSnackbarVisible(true);
     } finally {
       resetLoading();
     }
@@ -114,9 +120,6 @@ export default function Main() {
         onChangeText={setUsername}
         style={styles.input}
       />
-      <HelperText type="error" visible={error.username !== ""}>
-        {error.username}
-      </HelperText>
       <TextInput
         label="Password"
         value={password}
@@ -124,13 +127,12 @@ export default function Main() {
         secureTextEntry
         style={styles.input}
       />
-      <HelperText type="error" visible={error.password !== ""}>
-        {error.password}
-      </HelperText>
-      <View style={styles.switchContainer}>
-        <Text>SHG User</Text>
-        <Switch value={isShgUser} onValueChange={setIsShgUser} />
-      </View>
+      {mode === "login" && (
+        <View style={styles.switchContainer}>
+          <Text>SHG User</Text>
+          <Switch value={isShgUser} onValueChange={setIsShgUser} />
+        </View>
+      )}
       <Button
         mode="contained"
         onPress={mode === "login" ? handleLogin : handleRegister}
@@ -150,7 +152,7 @@ export default function Main() {
         onDismiss={() => setSnackbarVisible(false)}
         duration={3000}
       >
-        {mode === "login" ? "Login successful!" : "Registration successful!"}
+        {snackbarMessage}
       </Snackbar>
     </View>
   );
