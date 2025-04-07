@@ -3,7 +3,7 @@ import { useState } from "react";
 import Forum from "@/Components/Forum";
 import MarketPlace from "@/Components/Marketplace";
 import Bookkeeping from "@/Components/Bookkeeping";
-
+import Analytics from "@/Components/Analytics";
 
 const Home = () => {
   const [index, setIndex] = useState(2);
@@ -35,7 +35,7 @@ const Home = () => {
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
-    analytics: () => <Text>Market analytics</Text>,
+    analytics: () => <Analytics/>,
     forum: () => <Forum />,
     management: () => <Text>Community</Text>,
     marketplace: () => <MarketPlace />,
