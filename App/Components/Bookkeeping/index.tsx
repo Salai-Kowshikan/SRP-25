@@ -6,41 +6,41 @@ import Meetings from "@/Components/Bookkeeping/Meetings";
 import api from "@/api/api";
 
 interface MeetingResponse {
-  id: string;
-  date?: string;
-  attendees: number;
-  absentees: {
-    Absentees: number[];
-  };
+  meeting_id: string;
+  date: string;
+  present: number;
+  absentees: string[];
+  minutes: string;
+  shg_id: string;
 }
 
 interface MappedMeeting {
-  key: string;
+  id: string;
   date: string;
   presentPeople: number;
   totalPeople: number;
-  mom: string;
-  absentees: number[];
+  minutes: string;
+  absentees: string[];
 }
 
 const Bookkeeping = () => {
   const [tab, setTab] = useState("accounts");
   const [meetings, setMeetings] = useState<MappedMeeting[]>([]);
-  const user_id = "shg2005";
+  const shg_id = "shg_001";
 
   useEffect(() => {
     const fetchMeetings = async () => {
       try {
-        const response = await api.get<{ data: MeetingResponse[] }>(`${user_id}/meeting`);
+        const response = await api.get<{ data: MeetingResponse[] }>(`/api/meetings/${shg_id}`);
         console.log("Fetched meetings data:", response.data);
 
         const mappedMeetings: MappedMeeting[] = response.data.data.map((meeting) => ({
-          key: meeting.id,
-          date: meeting.date || "N/A",
-          presentPeople: meeting.attendees,
-          totalPeople: meeting.attendees + meeting.absentees.Absentees.length,
-          mom: "Minutes of the meeting not provided",
-          absentees: meeting.absentees.Absentees,
+          id: meeting.meeting_id,
+          date: meeting.date,
+          presentPeople: meeting.present,
+          totalPeople: meeting.present + meeting.absentees.length,
+          minutes: meeting.minutes,
+          absentees: meeting.absentees,
         }));
 
         setMeetings(mappedMeetings);
@@ -72,7 +72,7 @@ const Bookkeeping = () => {
           ]}
         />
       </SafeAreaView>
-      {tab === "accounts" && <Accounts />}
+      {tab === "accounts" && <Accounts shg_id={shg_id} />}
       {tab === "meetings" && <Meetings meetings={meetings} />}
     </View>
   );

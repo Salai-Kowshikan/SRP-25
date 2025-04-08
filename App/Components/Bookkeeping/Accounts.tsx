@@ -2,8 +2,46 @@ import { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { Surface, Text, DataTable } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
+import DialogBox from "@/Components/UI/DialogBox";
+import api from "@/api/api";
 
-const Accounts = () => {
+interface AccountsProps {
+  shg_id: string;
+}
+
+interface TransactionResponse {
+  amount: number;
+  id: string;
+  other_account: {
+    account_number?: string;
+    bank: string;
+    source?: string;
+    vendor?: string;
+    customer_name?: string;
+    payment_mode?: string;
+    transaction_id?: string;
+    reference_id?: string;
+    invoice_id?: string;
+    note?: string;
+    to_account?: string;
+  };
+  shg_id: string;
+  t_timestamp: string;
+  type: string;
+}
+
+const Accounts = ({ shg_id }: AccountsProps) => {
+  const [transactions, setTransactions] = useState<
+    {
+      id: string;
+      date: string;
+      type: string;
+      amount: number;
+      details: string;
+    }[]
+  >([]);
+  const [isEmpty, setIsEmpty] = useState(false); // New state to track empty responses
+
   const [page, setPage] = useState(0);
   const [numberOfItemsPerPageList] = useState([5, 10, 15]);
   const [itemsPerPage, setItemsPerPage] = useState(numberOfItemsPerPageList[0]);
@@ -14,20 +52,43 @@ const Accounts = () => {
   );
   const [selectedYear, setSelectedYear] = useState(
     String(currentDate.getFullYear())
-  ); 
+  );
 
-  const [transactions] = useState([
-    { key: 1, date: "2025-03-01", from: "Investor A", to: "Business", type: "Capital", amount: 14000 },
-    { key: 2, date: "2025-03-02", from: "Customer X", to: "Business", type: "Sales", amount: 5000 },
-    { key: 3, date: "2025-03-03", from: "Business", to: "Supplier Y", type: "Expenditure", amount: 2000 },
-    { key: 4, date: "2025-03-04", from: "Investor B", to: "Business", type: "Capital", amount: 10000 },
-    { key: 5, date: "2025-03-05", from: "Customer Y", to: "Business", type: "Sales", amount: 7000 },
-    { key: 6, date: "2025-03-06", from: "Business", to: "Supplier Z", type: "Expenditure", amount: 3000 },
-    { key: 7, date: "2025-02-15", from: "Investor C", to: "Business", type: "Capital", amount: 8000 },
-    { key: 8, date: "2025-02-20", from: "Customer Z", to: "Business", type: "Sales", amount: 6000 },
-    { key: 9, date: "2025-01-10", from: "Investor D", to: "Business", type: "Capital", amount: 12000 },
-    { key: 10, date: "2025-01-15", from: "Customer W", to: "Business", type: "Sales", amount: 4000 },
-  ]);
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await api.get<TransactionResponse[]>(
+          `/api/transactions/${shg_id}?month=${selectedMonth}&year=${selectedYear}`
+        );
+        console.log("Fetched transactions data:", response.data);
+
+        if (response.data.length === 0) {
+          setIsEmpty(true);
+          setTransactions([]);
+        } else {
+          setIsEmpty(false);
+          const mappedTransactions = response.data.map((transaction) => ({
+            id: transaction.id,
+            date: transaction.t_timestamp.split(" ")[0],
+            type: transaction.type,
+            amount: transaction.amount,
+            details:
+              transaction.other_account.vendor ||
+              transaction.other_account.customer_name ||
+              transaction.other_account.source ||
+              transaction.other_account.note ||
+              "N/A",
+          }));
+          setTransactions(mappedTransactions);
+        }
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+        setIsEmpty(true);
+      }
+    };
+
+    fetchTransactions();
+  }, [shg_id, selectedMonth, selectedYear]);
 
   const filteredTransactions = transactions.filter((transaction) => {
     const [year, month] = transaction.date.split("-");
@@ -35,15 +96,15 @@ const Accounts = () => {
   });
 
   const revenue = filteredTransactions
-    .filter((transaction) => transaction.type === "Sales")
+    .filter((transaction) => transaction.type === "sales")
     .reduce((sum, transaction) => sum + transaction.amount, 0);
 
   const capital = filteredTransactions
-    .filter((transaction) => transaction.type === "Capital")
+    .filter((transaction) => transaction.type === "funds")
     .reduce((sum, transaction) => sum + transaction.amount, 0);
 
   const expenditures = filteredTransactions
-    .filter((transaction) => transaction.type === "Expenditure")
+    .filter((transaction) => transaction.type === "expenditure")
     .reduce((sum, transaction) => sum + transaction.amount, 0);
 
   const profit = revenue - expenditures;
@@ -99,37 +160,59 @@ const Accounts = () => {
 
         <Surface style={styles.filters} elevation={4} mode="flat">
           <Text style={styles.title}>Transactions</Text>
-          <DataTable>
-            <DataTable.Header>
-              <DataTable.Title>Date</DataTable.Title>
-              <DataTable.Title>From</DataTable.Title>
-              <DataTable.Title>To</DataTable.Title>
-              <DataTable.Title>Type</DataTable.Title>
-              <DataTable.Title numeric>Amount</DataTable.Title>
-            </DataTable.Header>
+          {isEmpty ? (
+            <Text style={styles.noDataText}>
+              No transactions available for the selected month and year.
+            </Text>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <DataTable>
+                <DataTable.Header>
+                  <DataTable.Title style={styles.column}>Date</DataTable.Title>
+                  <DataTable.Title style={styles.column}>Type</DataTable.Title>
+                  <DataTable.Title numeric style={styles.column}>
+                    Amount
+                  </DataTable.Title>
+                  <DataTable.Title style={styles.column}>Details</DataTable.Title>
+                </DataTable.Header>
 
-            {filteredTransactions.slice(from, to).map((transaction) => (
-              <DataTable.Row key={transaction.key}>
-                <DataTable.Cell>{transaction.date}</DataTable.Cell>
-                <DataTable.Cell>{transaction.from}</DataTable.Cell>
-                <DataTable.Cell>{transaction.to}</DataTable.Cell>
-                <DataTable.Cell>{transaction.type}</DataTable.Cell>
-                <DataTable.Cell numeric>{transaction.amount}</DataTable.Cell>
-              </DataTable.Row>
-            ))}
+                {filteredTransactions.slice(from, to).map((transaction) => (
+                  <DataTable.Row key={transaction.id}>
+                    <DataTable.Cell style={styles.column}>
+                      {transaction.date}
+                    </DataTable.Cell>
+                    <DataTable.Cell style={styles.column}>
+                      {transaction.type}
+                    </DataTable.Cell>
+                    <DataTable.Cell numeric style={styles.column}>
+                      {transaction.amount}
+                    </DataTable.Cell>
+                    <DataTable.Cell style={styles.column}>
+                      <DialogBox
+                        title="Transaction Details"
+                        trigger="View"
+                        content={JSON.stringify(transaction, null, 2)}
+                      />
+                    </DataTable.Cell>
+                  </DataTable.Row>
+                ))}
 
-            <DataTable.Pagination
-              page={page}
-              numberOfPages={Math.ceil(filteredTransactions.length / itemsPerPage)}
-              onPageChange={(page) => setPage(page)}
-              label={`${from + 1}-${to} of ${filteredTransactions.length}`}
-              numberOfItemsPerPageList={numberOfItemsPerPageList}
-              numberOfItemsPerPage={itemsPerPage}
-              onItemsPerPageChange={setItemsPerPage}
-              showFastPaginationControls
-              selectPageDropdownLabel={"Rows per page"}
-            />
-          </DataTable>
+                <DataTable.Pagination
+                  page={page}
+                  numberOfPages={Math.ceil(
+                    filteredTransactions.length / itemsPerPage
+                  )}
+                  onPageChange={(page) => setPage(page)}
+                  label={`${from + 1}-${to} of ${filteredTransactions.length}`}
+                  numberOfItemsPerPageList={numberOfItemsPerPageList}
+                  numberOfItemsPerPage={itemsPerPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                  showFastPaginationControls
+                  selectPageDropdownLabel={"Rows per page"}
+                />
+              </DataTable>
+            </ScrollView>
+          )}
         </Surface>
       </View>
     </ScrollView>
@@ -182,6 +265,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
+  },
+  noDataText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "gray",
+    marginVertical: 20,
+  },
+  column: {
+    paddingHorizontal: 10,
   },
 });
 
