@@ -1,40 +1,65 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
-import { Card } from "react-native-paper";
+import { useTheme } from "react-native-paper";
+import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 
+interface Product {
+  id: string;
+  name: string;
+}
+
 const Sales = () => {
-  const [data, setData] = useState(null);
+  const theme = useTheme();
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchProducts = async () => {
       try {
-        const response = await axios.get("http://192.168.1.4:5000/analysis", {
-          params: { month: 3, year: 2025 },
-        });
-        setData(response.data);
+        const response = await axios.get("http://192.168.1.4:5000/products");
+        setProducts(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchData();
+    fetchProducts();
   }, []);
 
   return (
     <View style={styles.container}>
-      <Card style={styles.card}>
-        <Card.Content>
-          {error ? (
-            <Text style={styles.error}>Error: {error}</Text>
-          ) : data ? (
-            <Text style={styles.message}>{JSON.stringify(data, null, 2)}</Text>
-          ) : (
-            <Text style={styles.loading}>Loading...</Text>
-          )}
-        </Card.Content>
-      </Card>
+      {loading ? (
+        <Text style={[styles.message, { color: theme.colors.primary }]}>Loading...</Text>
+      ) : error ? (
+        <Text style={[styles.message, { color: theme.colors.error }]}>{error}</Text>
+      ) : (
+        <>
+         
+          <View style={[styles.pickerWrapper, {
+            backgroundColor: theme.colors.secondaryContainer,
+            borderRadius: 12,
+          }]}>
+            <Picker
+              selectedValue={selectedProduct}
+              onValueChange={(value) => setSelectedProduct(value)}
+              style={[styles.picker, { color: theme.colors.onSecondaryContainer }]}
+              dropdownIconColor={theme.colors.onSecondaryContainer}
+              itemStyle={styles.pickerItem}
+            >
+              <Picker.Item label="Select a product" value={null} enabled={false} />
+              {products.map((product) => (
+                <Picker.Item key={product.id} label={product.name} value={product.name} />
+              ))}
+            </Picker>
+          </View>
+        </>
+      )}
     </View>
   );
 };
@@ -44,29 +69,27 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     alignItems: "center",
-    justifyContent: "center",
   },
-  card: {
-    width: "90%",
-    padding: 16,
-    borderRadius: 8,
-    elevation: 4,
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
   },
   message: {
     fontSize: 16,
-    fontWeight: "normal",
-    textAlign: "left",
-  },
-  error: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "red",
     textAlign: "center",
   },
-  loading: {
+  pickerWrapper: {
+    width: "90%",
+    marginTop: 8,
+    overflow: "hidden",
+  },
+  picker: {
+    width: "100%",
+    height: 48,
+    paddingHorizontal: 12,
+  },
+  pickerItem: {
     fontSize: 16,
-    fontWeight: "normal",
-    textAlign: "center",
   },
 });
 

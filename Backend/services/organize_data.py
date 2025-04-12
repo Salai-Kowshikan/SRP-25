@@ -1,7 +1,7 @@
-from services.fetch_transactions import fetch_transactions
 from services.fetch_sales import fetch_sales
 from services.fetch_expenditure import fetch_expenditure
-
+from services.fetch_transactions import fetch_transactions
+from services.fetch_products import fetch_products
 
 def filter_fund_transactions(transactions):
     return [t for t in transactions if t["type"] == "funds"]
