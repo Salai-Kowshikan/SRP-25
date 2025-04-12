@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { SegmentedButtons } from "react-native-paper";
 import Performance from "@/Components/Analytics/performance";
-import Sales from "@/Components/Analytics/sales"; 
 import { calculatePerformance, getChartData } from "@/utils/calculatePerformance";
 
 const Analytics = () => {
@@ -21,7 +20,8 @@ const Analytics = () => {
           onValueChange={setTab}
           buttons={[
             { value: "performance", label: "Performance", icon: "chart-line" },
-            { value: "sales", label: "sales", icon: "cash" },
+            { value: "profit", label: "Profit", icon: "cash" },
+            { value: "sales", label: "Sales", icon: "cart" },
           ]}
         />
       </View>
@@ -37,7 +37,6 @@ const Analytics = () => {
           profit={profit}
         />
       )}
-      {tab === "sales" && <Sales />}
     </ScrollView>
   );
 };
