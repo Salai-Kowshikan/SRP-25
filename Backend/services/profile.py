@@ -18,7 +18,7 @@ def get_shg_profile(shg_id):
             "shg_id": result[3],
             "shg_name": result[1],
             "account_details": result[2],  # Assuming this is a JSON/Dict field
-            "rating": result[4],
+            "members_count": result[4],
             "balance": result[5]
         }
         print(f"Fetched SHG profile for ID {shg_id}")

@@ -1,107 +1,295 @@
-import React, { useState } from "react";
-import { View, Text, TextInput } from "react-native";
-import { Card, DataTable, Button, Switch, IconButton } from "react-native-paper";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ActivityIndicator,
+  ScrollView,
+} from "react-native";
+import {
+  Card,
+  DataTable,
+  Button,
+  IconButton,
+  Dialog,
+  Portal,
+  Switch,
+} from "react-native-paper";
+import api from "@/api/api";
 
-interface Member {
-  id: number;
-  name: string;
-  attendance: number;
-  smsConfig: boolean;
+interface AccountDetails {
+  account_holder_name: string;
+  account_number: string;
+  account_type: string;
+  balance: number;
+  bank_name: string;
+  branch_name: string;
+  ifsc_code: string;
 }
 
-const initialMembers: Member[] = [
-  { id: 1, name: "John Doe", attendance: 80, smsConfig: false },
-  { id: 2, name: "Jane Smith", attendance: 60, smsConfig: true },
-];
+interface Member {
+  id: string;
+  member_name: string;
+  non_smartphone_user: boolean;
+}
 
-export default function Profile() {
-  const [members, setMembers] = useState<Member[]>(initialMembers);
-  const [newMember, setNewMember] = useState<Member>({ id: 0, name: "", attendance: 100, smsConfig: false });
+interface Profile {
+  shg_id: string;
+  shg_name: string;
+  rating: number;
+  balance: number;
+  account_details: AccountDetails;
+}
+
+export default function ProfileScreen() {
+  const shgId = "shg_001"; // Replace with dynamic value
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [newMemberName, setNewMemberName] = useState("");
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editedName, setEditedName] = useState("");
+  const [isEditDialogVisible, setIsEditDialogVisible] = useState(false);
+  const [isAddDialogVisible, setIsAddDialogVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [newMemberNonSmartphone, setNewMemberNonSmartphone] = useState(false);
+  const [editedNonSmartphoneUser, setEditedNonSmartphoneUser] = useState(false);
 
-  const addMember = () => {
-    if (newMember.name.trim()) {
-      setMembers([...members, { ...newMember, id: Date.now() }]);
-      setNewMember({ id: 0, name: "", attendance: 100, smsConfig: false });
+  useEffect(() => {
+    fetchProfileAndMembers();
+  }, []);
+
+  const fetchProfileAndMembers = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/api/profile/${shgId}`);
+      const { data, members } = res.data;
+      setProfile(data);
+      setMembers(members);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const editMember = (id: number) => {
-    const member = members.find((m) => m.id === id);
-    if (member) setEditingMember(member);
-  };
-
-  const saveMember = () => {
-    if (editingMember) {
-      setMembers(members.map((m) => (m.id === editingMember.id ? editingMember : m)));
+  const updateMember = async () => {
+    if (!editingMember || !editedName.trim()) return;
+    setLoading(true);
+    try {
+      const res = await api.put(
+        `/api/profile/${shgId}/members/${editingMember.id}`,
+        {
+          member_name: editedName,
+          non_smartphone_user: editedNonSmartphoneUser,
+        }
+      );
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === editingMember.id
+            ? {
+                ...m,
+                member_name: editedName,
+                non_smartphone_user: editedNonSmartphoneUser,
+              }
+            : m
+        )
+      );
+      setIsEditDialogVisible(false);
       setEditingMember(null);
+      setEditedName("");
+    } catch (err) {
+      console.error("Update error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const removeMember = (id: number) => {
-    setMembers(members.filter((m) => m.id !== id));
+  const addMember = async () => {
+    if (!newMemberName.trim()) return;
+    setLoading(true);
+    try {
+      const res = await api.post(`/api/profile/${shgId}/members`, {
+        member_name: newMemberName,
+        non_smartphone_user: newMemberNonSmartphone,
+      });
+      setMembers([...members, res.data]);
+      setNewMemberName("");
+      setNewMemberNonSmartphone(false);
+      setIsAddDialogVisible(false);
+    } catch (err) {
+      console.error("Add error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleSmsConfig = (id: number) => {
-    setMembers(members.map((m) => (m.id === id ? { ...m, smsConfig: !m.smsConfig } : m)));
+  const deleteMember = async () => {
+    if (!editingMember) return;
+    setLoading(true);
+    try {
+      //getting null value for editingMember.id
+      console.log(editingMember.id);
+      await api.delete(`/api/profile/${shgId}/members/${editingMember.id}`);
+      setMembers((prev) => prev.filter((m) => m.id !== editingMember.id));
+      setIsEditDialogVisible(false);
+      setEditingMember(null);
+      setEditedName("");
+    } catch (err) {
+      console.error("Delete error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <View style={{ padding: 16 }}>
-      <Card style={{ marginBottom: 16 }}>
-        <Card.Content>
-          <Text style={{ fontSize: 18, fontWeight: "bold" }}>Sunrise SHG</Text>
-          <Text>Members: {members.length}</Text>
-          <Text>Location: Green Valley</Text>
-        </Card.Content>
-      </Card>
+    <ScrollView style={{ padding: 16 }}>
+      {loading && <ActivityIndicator size="large" color="#6200ee" />}
+
+      {profile && (
+        <Card style={{ marginBottom: 16 }}>
+          <Card.Content>
+            <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+              {profile.shg_name}
+            </Text>
+            <Text>Balance: {profile.balance}</Text>
+            <Text>Total Members: {members.length}</Text>
+            <Text style={{ fontSize: 15, fontWeight: "bold" }}>
+              Bank Details
+            </Text>
+            <Text>Bank Name: {profile.account_details.bank_name}</Text>
+            <Text>
+              Account Number: {profile.account_details.account_number}
+            </Text>
+            <Text>Account Type: {profile.account_details.account_type}</Text>
+            <Text>IFSC Code: {profile.account_details.ifsc_code}</Text>
+            <Text>Branch Name: {profile.account_details.branch_name}</Text>
+            <Text>
+              Account Holder Name: {profile.account_details.account_holder_name}
+            </Text>
+          </Card.Content>
+        </Card>
+      )}
+
+      <Button
+        mode="contained"
+        onPress={() => setIsAddDialogVisible(true)}
+        style={{ marginBottom: 16 }}
+      >
+        Add Member
+      </Button>
 
       <DataTable>
         <DataTable.Header>
           <DataTable.Title>Name</DataTable.Title>
-          <DataTable.Title>Attendance (%)</DataTable.Title>
-          <DataTable.Title>SMS User Config</DataTable.Title>
-          <DataTable.Title>Action</DataTable.Title>
+          <DataTable.Title>SMS</DataTable.Title>
+          <DataTable.Title>Actions</DataTable.Title>
         </DataTable.Header>
 
-        {members.map((member) => (
-          <DataTable.Row key={member.id}>
-            <DataTable.Cell>{member.name}</DataTable.Cell>
-            <DataTable.Cell>{member.attendance}%</DataTable.Cell>
+        {members.map((m) => (
+          <DataTable.Row key={m.id}>
+            <DataTable.Cell>{m.member_name}</DataTable.Cell>
             <DataTable.Cell>
-              <Switch value={member.smsConfig} onValueChange={() => toggleSmsConfig(member.id)} />
+              {m.non_smartphone_user ? "No" : "Yes"}
             </DataTable.Cell>
             <DataTable.Cell>
-              <IconButton icon="pencil" onPress={() => editMember(member.id)} />
-              <IconButton icon="delete" onPress={() => removeMember(member.id)} />
+              <IconButton
+                icon="pencil"
+                onPress={() => {
+                  if (m.id) {
+                    setEditingMember(m); 
+                    setEditedName(m.member_name);
+                    setEditedNonSmartphoneUser(m.non_smartphone_user);
+                    setIsEditDialogVisible(true);
+                  } else {
+                    console.error("Member ID is null or undefined");
+                  }
+                }}
+              />
             </DataTable.Cell>
           </DataTable.Row>
         ))}
       </DataTable>
 
-      <View style={{ marginTop: 20 }}>
-        {editingMember ? (
-          <>
+      {/* Edit Dialog */}
+      <Portal>
+        <Dialog
+          visible={isEditDialogVisible}
+          onDismiss={() => setIsEditDialogVisible(false)}
+        >
+          <Dialog.Title>Edit Member</Dialog.Title>
+          <Dialog.Content>
             <TextInput
-              placeholder="Edit Name"
-              value={editingMember.name}
-              onChangeText={(text) => setEditingMember({ ...editingMember, name: text })}
-              style={{ borderBottomWidth: 1, marginBottom: 10 }}
+              placeholder="Edit member name"
+              value={editedName}
+              onChangeText={setEditedName}
+              style={{
+                borderBottomWidth: 1,
+                borderColor: "#ccc",
+                marginBottom: 10,
+              }}
             />
-            <Button mode="contained" onPress={saveMember}>Save</Button>
-          </>
-        ) : (
-          <>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 10,
+              }}
+            >
+              <Text>Has Smartphone?</Text>
+              <Switch
+                value={!editedNonSmartphoneUser}
+                onValueChange={(val) => setEditedNonSmartphoneUser(!val)}
+                style={{ marginLeft: 10 }}
+              />
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions style={{ justifyContent: "space-between" }}>
+            <Button onPress={deleteMember} textColor="red">
+              Delete
+            </Button>
+            <Button onPress={updateMember}>Save</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      {/* Add Dialog */}
+      <Portal>
+        <Dialog
+          visible={isAddDialogVisible}
+          onDismiss={() => setIsAddDialogVisible(false)}
+        >
+          <Dialog.Title>Add New Member</Dialog.Title>
+          <Dialog.Content>
             <TextInput
-              placeholder="New Member Name"
-              value={newMember.name}
-              onChangeText={(text) => setNewMember({ ...newMember, name: text })}
-              style={{ borderBottomWidth: 1, marginBottom: 10 }}
+              placeholder="New member name"
+              value={newMemberName}
+              onChangeText={setNewMemberName}
+              style={{
+                borderBottomWidth: 1,
+                borderColor: "#ccc",
+                marginBottom: 10,
+              }}
             />
-            <Button mode="contained" onPress={addMember}>Add Member</Button>
-          </>
-        )}
-      </View>
-    </View>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 10,
+              }}
+            >
+              <Text>Has Smartphone?</Text>
+              <Switch
+                value={!newMemberNonSmartphone}
+                onValueChange={(val) => setNewMemberNonSmartphone(!val)}
+                style={{ marginLeft: 10 }}
+              />
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={addMember}>Add</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </ScrollView>
   );
 }
