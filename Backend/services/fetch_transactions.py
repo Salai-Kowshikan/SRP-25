@@ -1,8 +1,11 @@
 from datetime import datetime
-from connect import db
+from connect import get_db_connection, release_db_connection
 
 def fetch_transactions(month=None, year=None):
-    cursor = db.cursor()
+    connection = get_db_connection()
+    if not connection:
+        raise Exception("Failed to get database connection.")
+    cursor = connection.cursor()
     try:
         query = """
             SELECT id, amount, type, t_timestamp, other_account
@@ -34,7 +37,8 @@ def fetch_transactions(month=None, year=None):
         ]
         return result
     except Exception as e:
-        db.rollback()
+        connection.rollback()
         raise e
     finally:
         cursor.close()
+        release_db_connection(connection)

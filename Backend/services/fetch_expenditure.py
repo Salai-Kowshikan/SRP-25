@@ -1,7 +1,10 @@
-from connect import db
+from connect import get_db_connection, release_db_connection
 
 def fetch_expenditure():
-    cursor = db.cursor()
+    connection = get_db_connection()
+    if not connection:
+        raise Exception("Failed to get database connection.")
+    cursor = connection.cursor()
 
     try:
         cursor.execute(
@@ -23,7 +26,8 @@ def fetch_expenditure():
         ]
         return result
     except Exception as e:
-        db.rollback()
+        connection.rollback()
         raise e
     finally:
         cursor.close()
+        release_db_connection(connection)

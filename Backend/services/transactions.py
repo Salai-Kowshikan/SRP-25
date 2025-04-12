@@ -1,5 +1,5 @@
 from datetime import datetime
-from connect import db
+from connect import get_db_connection, release_db_connection
 
 def get_transactions_by_shg(shg_id, month, year):
     """
@@ -15,7 +15,12 @@ def get_transactions_by_shg(shg_id, month, year):
     """
     try:
         print(f"Fetching transactions for SHG ID: {shg_id}, Month: {month}, Year: {year}")
-        cursor = db.cursor()
+        connection = get_db_connection()
+        if not connection:
+            print("Database connection failed.")
+            return []
+
+        cursor = connection.cursor()
         query = """
             SELECT id, shg_id, type, amount, other_account, t_timestamp
             FROM transactions
@@ -40,7 +45,10 @@ def get_transactions_by_shg(shg_id, month, year):
         print(f"Processed transactions: {transactions}")
         
         cursor.close()
+        release_db_connection(connection)
         return transactions
     except Exception as e:
         print(f"Error fetching transactions: {e}")
+        if connection:
+            release_db_connection(connection)
         return []
