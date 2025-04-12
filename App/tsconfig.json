@@ -10,7 +10,8 @@
     "moduleResolution": "node",
     "target": "esnext",
     "module": "esnext",
-    "strict": true
+    "strict": true,
+    "allowSyntheticDefaultImports": true
   },
   "extends": "expo/tsconfig.base"
 }

@@ -28,7 +28,7 @@ const years = Array.from({ length: 5 }, (_, i) => ({
 
 interface PerformanceProps {
   selectedMonth: string;
-  setSelectedMonth: (month: string) => void;
+  setSelectedMonth: React.Dispatch<React.SetStateAction<string>>;
   chartData: {
     labels: string[];
     datasets: {
