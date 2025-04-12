@@ -1,4 +1,4 @@
-from connect import db
+from connect import get_db_connection, release_db_connection
 
 def get_data_by_shg_id(shg_id):
     """
@@ -10,8 +10,13 @@ def get_data_by_shg_id(shg_id):
     Returns:
         dict: A dictionary containing the status, data, and optional status code.
     """
+    connection = None
     try:
-        cursor = db.cursor()
+        connection = get_db_connection()
+        if not connection:
+            raise Exception("Failed to get database connection.")
+
+        cursor = connection.cursor()
         query = "SELECT * FROM Meetings WHERE shg_id = %s;"
         cursor.execute(query, (shg_id,))
         data = cursor.fetchall()
@@ -20,10 +25,15 @@ def get_data_by_shg_id(shg_id):
         if not data:
             return {"success": False, "error": "No data found for the given SHG ID."}, 200
 
-        # Map each row to a JSON object
         keys = ["meeting_id", "shg_id", "minutes", "date", "absentees", "present"]
         mapped_data = [dict(zip(keys, row)) for row in data]
 
         return {"success": True, "data": mapped_data}, 200
     except Exception as e:
+        if connection:
+            connection.rollback()
         return {"success": False, "error": f"Failed to fetch data: {e}"}, 500
+    finally:
+        if connection:
+            connection.commit()
+            release_db_connection(connection)

@@ -1,4 +1,4 @@
-from connect import db
+from connect import get_db_connection, release_db_connection
 from werkzeug.security import generate_password_hash, check_password_hash
 
 def register_user(username, password, is_shg):
@@ -14,11 +14,16 @@ def register_user(username, password, is_shg):
         dict: A dictionary containing the status, message, and optional status code.
     """
     try:
-        cursor = db.cursor()
+        connection = get_db_connection()
+        if not connection:
+            return {"success": False, "error": "Database connection failed."}, 500
+
+        cursor = connection.cursor()
         check_query = "SELECT COUNT(*) FROM Users WHERE username = %s;"
         cursor.execute(check_query, (username,))
         if cursor.fetchone()[0] > 0:
             cursor.close()
+            release_db_connection(connection)
             return {"success": False, "error": "Username already exists."}, 200
 
         hashed_password = generate_password_hash(password)
@@ -27,11 +32,14 @@ def register_user(username, password, is_shg):
         VALUES (%s, %s, %s);
         """
         cursor.execute(insert_query, (username, hashed_password, is_shg))
-        db.commit()
+        connection.commit()
         cursor.close()
+        release_db_connection(connection)
         return {"success": True, "message": "User registered successfully."}, 200
     except Exception as e:
-        db.rollback()
+        if connection:
+            connection.rollback()
+            release_db_connection(connection)
         return {"success": False, "error": f"Failed to register user: {e}"}, 500
 
 def login_user(username, password, is_shg):
@@ -48,11 +56,16 @@ def login_user(username, password, is_shg):
     """
     try:
         print(f"Attempting login for username: {username}, is_shg: {is_shg}")
-        cursor = db.cursor()
+        connection = get_db_connection()
+        if not connection:
+            return {"success": False, "error": "Database connection failed."}, 500
+
+        cursor = connection.cursor()
         query = "SELECT password, is_shg FROM Users WHERE username = %s;"
         cursor.execute(query, (username,))
         result = cursor.fetchone()
         cursor.close()
+        release_db_connection(connection)
 
         if not result:
             print("User not found in database.") 
@@ -73,4 +86,6 @@ def login_user(username, password, is_shg):
         return {"success": True, "message": "Login successful."}, 200
     except Exception as e:
         print(f"Error during login: {e}")
+        if connection:
+            release_db_connection(connection)
         return {"status": "error", "error": f"Failed to login: {e}"}, 500

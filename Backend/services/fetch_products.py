@@ -1,6 +1,6 @@
 from connect import get_db_connection, release_db_connection
 
-def fetch_expenditure():
+def fetch_products():
     connection = get_db_connection()
     if not connection:
         raise Exception("Failed to get database connection.")
@@ -9,20 +9,17 @@ def fetch_expenditure():
     try:
         cursor.execute(
             """
-            SELECT id, product_id, transaction_id, notes, quantity
-            FROM expenditure
+            SELECT id, name
+            FROM products
             """
         )
-        expenditures = cursor.fetchall()
+        prod = cursor.fetchall()
         result = [
             {
                 "id": row[0],
-                "product_id": row[1],
-                "transaction_id": row[2],
-                "notes": row[3],
-                "quantity": row[4]
+                "name": row[1]
             }
-            for row in expenditures
+            for row in prod
         ]
         return result
     except Exception as e:

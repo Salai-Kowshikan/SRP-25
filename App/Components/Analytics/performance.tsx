@@ -1,16 +1,39 @@
-import React from "react";
-import { View, Text, StyleSheet, Dimensions, FlatList, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { useTheme } from "@react-navigation/native";
 import { BarChart } from "react-native-chart-kit";
-import { useTheme } from "react-native-paper";
+import axios from "axios";
+import RNPickerSelect from "react-native-picker-select";
+
+const months = [
+  { label: "January", value: "1" },
+  { label: "February", value: "2" },
+  { label: "March", value: "3" },
+  { label: "April", value: "4" },
+  { label: "May", value: "5" },
+  { label: "June", value: "6" },
+  { label: "July", value: "7" },
+  { label: "August", value: "8" },
+  { label: "September", value: "9" },
+  { label: "October", value: "10" },
+  { label: "November", value: "11" },
+  { label: "December", value: "12" },
+];
+
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 5 }, (_, i) => ({
+  label: (currentYear - i).toString(),
+  value: (currentYear - i).toString(),
+}));
 
 interface PerformanceProps {
   selectedMonth: string;
-  setSelectedMonth: (month: string) => void;
+  setSelectedMonth: React.Dispatch<React.SetStateAction<string>>;
   chartData: {
     labels: string[];
     datasets: {
       data: number[];
-      colors?: ((opacity: number) => string)[];
+      colors: ((opacity?: number) => string)[];
     }[];
   };
   revenue: number;
@@ -19,141 +42,127 @@ interface PerformanceProps {
   profit: number;
 }
 
-const months = [
-  { id: "01", name: "Jan" }, { id: "02", name: "Feb" }, { id: "03", name: "Mar" },
-  { id: "04", name: "Apr" }, { id: "05", name: "May" }, { id: "06", name: "Jun" },
-  { id: "07", name: "Jul" }, { id: "08", name: "Aug" }, { id: "09", name: "Sep" },
-  { id: "10", name: "Oct" }, { id: "11", name: "Nov" }, { id: "12", name: "Dec" }
-];
-
 const Performance: React.FC<PerformanceProps> = ({
   selectedMonth,
   setSelectedMonth,
-  chartData,
-  revenue,
-  capital,
-  expenditures,
-  profit,
 }) => {
   const theme = useTheme();
+  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
+  const [revenue, setRevenue] = useState(0);
+  const [capital, setCapital] = useState(0);
+  const [expenditures, setExpenditures] = useState(0);
+  const [profit, setProfit] = useState(0);
+
+  useEffect(() => {
+    const fetchPerformanceData = async () => {
+      try {
+        const res = await axios.get("http://192.168.1.4:5000/analysis", {
+          params: {
+            month: parseInt(selectedMonth),
+            year: parseInt(selectedYear),
+          },
+        });
+
+        const data = res.data.summary;
+        setRevenue(data.total_revenue);
+        setCapital(data.total_funds_received);
+        setExpenditures(data.total_expenditure);
+        setProfit(data.net_profit);
+      } catch (err) {
+        console.error("Failed to fetch performance data:", err);
+      }
+    };
+
+    if (selectedMonth && selectedYear) {
+      fetchPerformanceData();
+    }
+  }, [selectedMonth, selectedYear]);
+
+  const chartData = {
+    labels: ["Revenue", "Expenditure", profit < 0 ? "Loss" : "Profit", "Capital"],
+    datasets: [
+      {
+        data: [
+          revenue,
+          expenditures,
+          Math.abs(profit),
+          capital,
+        ],
+      },
+    ],
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.heading, { color: theme.colors.onBackground }]}>
-        {months.find(m => m.id === selectedMonth)?.name} Performance
+    <View >
+  
+      <Text>
+      Select Month:
       </Text>
-
-      <FlatList
-        data={months}
-        horizontal
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.monthItem,
-              selectedMonth === item.id && {
-                backgroundColor: theme.colors.primary,
-                borderColor: theme.colors.primary,
-              },
-            ]}
-            onPress={() => setSelectedMonth(item.id)}
-          >
-            <Text style={[
-              styles.monthText,
-              selectedMonth === item.id && { color: theme.colors.onPrimary }
-            ]}>
-              {item.name}
-            </Text>
-          </TouchableOpacity>
-        )}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.monthPicker}
+      <RNPickerSelect
+      onValueChange={setSelectedMonth}
+      items={months}
+      placeholder={{ label: "Select month", value: null }}
+     
+      value={selectedMonth}
       />
 
-      <BarChart
-        data={chartData}
-        width={Dimensions.get("window").width - 32}
-        height={220}
-        yAxisLabel="₹"
-        yAxisSuffix=""
-        fromZero
-        chartConfig={{
-          backgroundColor: theme.colors.surface,
-          backgroundGradientFrom: theme.colors.surface,
-          backgroundGradientTo: theme.colors.surfaceVariant,
-          decimalPlaces: 0,
-          color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          labelColor: (opacity = 1) => theme.colors.onSurface,
-          barPercentage: 0.5,
-          propsForBackgroundLines: {
-            strokeWidth: 0
-          },
-          style: {
-            borderRadius: 16,
-          },
+      
+      <Text >
+      Select Year:
+      </Text>
+      <RNPickerSelect
+      onValueChange={setSelectedYear}
+      items={years}
+      placeholder={{ label: "Select year", value: null }}
+      
+      value={selectedYear}
+      />
+
+   
+    <BarChart
+    data={chartData}
+    width={Dimensions.get("window").width - 32}
+    height={250}
+    fromZero
+    withCustomBarColorFromData
+    showValuesOnTopOfBars
+    yAxisLabel="₹"
+    yAxisSuffix=""
+    yAxisInterval={1}
+    verticalLabelRotation={0}
+    chartConfig={{
+      backgroundGradientFrom: "#ffffff",
+      backgroundGradientTo: "#ffffff",
+      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+      labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+      barPercentage: 0.5,
+      useShadowColorFromDataset: false,
+    }}
+    />
+
+      <View style={{ backgroundColor: theme.colors.card, marginTop: 16, padding: 16, borderRadius: 8 }}>
+      <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
+        Revenue: ₹{revenue.toLocaleString("en-IN")}
+      </Text>
+      <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
+        Capital: ₹{capital.toLocaleString("en-IN")}
+      </Text>
+      <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
+        Expenditure: ₹{expenditures.toLocaleString("en-IN")}
+      </Text>
+      <Text
+        style={{
+        color: profit >= 0 ? theme.colors.primary : theme.colors.notification,
+        fontWeight: "bold",
+        fontSize: 16,
         }}
-        style={styles.chart}
-      />
-
-      <View style={[styles.summary, { backgroundColor: theme.colors.surface }]}>
-        <Text style={[styles.summaryText, { color: theme.colors.onSurface }]}>
-          Revenue: ₹{revenue.toLocaleString('en-IN')}
-        </Text>
-        <Text style={[styles.summaryText, { color: theme.colors.onSurface }]}>
-          Capital: ₹{capital.toLocaleString('en-IN')}
-        </Text>
-        <Text style={[styles.summaryText, { color: theme.colors.onSurface }]}>
-          Expenditure: ₹{expenditures.toLocaleString('en-IN')}
-        </Text>
-        <Text style={[
-          styles.summaryText, 
-          { color: profit >= 0 ? '#4CAF50' : '#F44336', fontWeight: 'bold' }
-        ]}>
-          Profit: ₹{profit.toLocaleString('en-IN')}
-        </Text>
+      >
+        {profit >= 0 ? "Profit" : "Loss"}: ₹{Math.abs(profit).toLocaleString("en-IN")}
+      </Text>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  monthPicker: {
-    marginBottom: 16,
-    paddingHorizontal: 8,
-  },
-  monthItem: {
-    padding: 10,
-    marginHorizontal: 4,
-    borderWidth: 1,
-    borderRadius: 8,
-    minWidth: 50,
-    alignItems: 'center',
-  },
-  monthText: {
-    fontSize: 14,
-  },
-  chart: {
-    marginVertical: 16,
-    borderRadius: 16,
-  },
-  summary: {
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 8,
-    gap: 8,
-  },
-  summaryText: {
-    fontSize: 16,
-  },
-});
 
 export default Performance;

@@ -6,7 +6,7 @@ import Bookkeeping from "@/Components/Bookkeeping";
 import Analytics from "@/Components/Analytics";
 
 const Home = () => {
-  const [index, setIndex] = useState(2);
+  const [index, setIndex] = useState(0);
   const [routes] = useState([
     {
       key: "analytics",
