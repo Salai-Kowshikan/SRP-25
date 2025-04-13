@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import { Surface, Text, DataTable, FAB } from "react-native-paper";
 import DialogBox from "@/Components/UI/DialogBox";
 import AddEntryDialogBox from "./AddEntryDialogBox";
+import { useMeetingStore } from "@/stores/meetingStore";
 
 interface Member {
   member_id: number;
@@ -18,11 +19,8 @@ interface MappedMeeting {
   absentees: string[];
 }
 
-interface MeetingsProps {
-  meetings: MappedMeeting[];
-}
-
-const Meetings = ({ meetings }: MeetingsProps) => {
+const Meetings = () => {
+  const meetings = useMeetingStore((state) => state.meetings);
   const [page, setPage] = useState(0);
   const [numberOfItemsPerPageList] = useState([5, 10, 15]);
   const [itemsPerPage, setItemsPerPage] = useState(numberOfItemsPerPageList[0]);

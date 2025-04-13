@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useProfileStore } from "@/stores/profileStore";
+import api from "@/api/api";
 
 interface AddEntryDialogBoxProps {
   visible: boolean;
@@ -43,11 +44,11 @@ const AddEntryDialogBox = ({ visible, onClose }: AddEntryDialogBoxProps) => {
         present: presentMembers.length,
         attendance_percentage: ((presentMembers.length / members.length) * 100).toFixed(2),
       };
+      await api.post("/api/meetings/shg_001", payload);
 
-      console.log("API Payload:", payload);
       onClose();
     } catch (error) {
-      console.error("Failed to prepare meeting entry payload:", error);
+      console.error("Failed to prepare meeting entry payload or make API call:", error);
     }
   };
 
