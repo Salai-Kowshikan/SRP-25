@@ -1,39 +1,59 @@
 import { View, StyleSheet } from "react-native";
-import { Text, Card, Button, Modal, Portal, TextInput } from "react-native-paper";
+import { Text, Card, Button, Modal, Portal, TextInput, Switch } from "react-native-paper";
 import { useState } from "react";
+import { useProductStore } from "@/stores/productStore";
+import api from "@/api/api";
 
 type ProductCardProps = {
+  productId: string; // Added productId prop
   productName: string;
   sellingPrice: string;
   description: string;
-  onModify: (updatedProduct: { productName: string; sellingPrice: string; description: string }) => void;
-  onViewSales: () => void;
+  on_sale: boolean;
 };
 
 const ProductCard = ({
+  productId, // Destructure productId
   productName,
   sellingPrice,
   description,
-  onModify,
-  onViewSales,
+  on_sale,
 }: ProductCardProps) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [updatedName, setUpdatedName] = useState(productName);
   const [updatedPrice, setUpdatedPrice] = useState(sellingPrice);
   const [updatedDescription, setUpdatedDescription] = useState(description);
+  const [updatedOnSale, setUpdatedOnSale] = useState(on_sale);
 
-  const handleSaveChanges = () => {
-    onModify({
-      productName: updatedName,
-      sellingPrice: updatedPrice,
+  const { fetchProducts } = useProductStore();
+
+  const handleSaveChanges = async () => {
+    const payload = {
+      product_id: productId,
+      name: updatedName,
       description: updatedDescription,
-    });
+      price: parseFloat(updatedPrice),
+      on_sale: updatedOnSale,
+    };
+
+    try {
+      const response = await api.put("/api/products/edit", payload);
+      if (response.data.success) {
+        console.log("Product updated successfully:", response.data);
+        await fetchProducts();
+      } else {
+        console.error("Error updating product:", response.data.error);
+      }
+    } catch (error) {
+      console.error("API call failed:", error);
+    }
+
     setIsModalVisible(false);
   };
 
   return (
     <>
-      <Card style={styles.card}>
+      <Card style={[styles.card, !on_sale && styles.dullCard]}>
         <Card.Content style={styles.cardContent}>
           <View style={styles.textContainer}>
             <Text style={styles.productName}>{productName}</Text>
@@ -44,9 +64,6 @@ const ProductCard = ({
         <Card.Actions style={styles.cardActions}>
           <Button mode="outlined" onPress={() => setIsModalVisible(true)} style={styles.actionButton}>
             Modify Listing
-          </Button>
-          <Button mode="contained" onPress={onViewSales} style={styles.actionButton}>
-            View Sales
           </Button>
         </Card.Actions>
       </Card>
@@ -77,11 +94,15 @@ const ProductCard = ({
             onChangeText={setUpdatedDescription}
             style={styles.input}
           />
+          <View style={styles.switchContainer}>
+            <Text>On Sale</Text>
+            <Switch
+              value={updatedOnSale}
+              onValueChange={setUpdatedOnSale}
+            />
+          </View>
           <Button mode="contained" onPress={handleSaveChanges} style={styles.saveButton}>
             Save Changes
-          </Button>
-          <Button mode="outlined" onPress={handleSaveChanges} style={styles.saveButton}>
-            Delete listing
           </Button>
         </Modal>
       </Portal>
@@ -94,6 +115,9 @@ const styles = StyleSheet.create({
     margin: 10,
     borderRadius: 8,
     overflow: "hidden",
+  },
+  dullCard: {
+    opacity: 0.5,
   },
   cardContent: {
     flexDirection: "row",
@@ -136,6 +160,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   input: {
+    marginBottom: 10,
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10,
   },
   saveButton: {

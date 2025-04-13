@@ -11,10 +11,6 @@ const MarketPlace = () => {
     fetchProducts();
   }, []);
 
-  const handleModifyProduct = (id: string, updatedProduct: { productName: string; sellingPrice: string; description: string }) => {
-    console.log(`Modify product with ID: ${id}`, updatedProduct);
-  };
-
   return (
     <View style={styles.container}>
       <FlatList
@@ -22,11 +18,11 @@ const MarketPlace = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <ProductCard
+            productId={item.id}
             productName={item.name}
             sellingPrice={item.price.toString()}
             description={item.description}
-            onModify={(updatedProduct) => handleModifyProduct(item.id, updatedProduct)}
-            onViewSales={() => console.log(`View Sales for ${item.name}`)}
+            on_sale={item.on_sale}
           />
         )}
         contentContainerStyle={styles.list}

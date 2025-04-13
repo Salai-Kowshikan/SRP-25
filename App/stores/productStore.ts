@@ -6,6 +6,7 @@ interface Product {
   name: string;
   price: number;
   description: string;
+  on_sale: boolean;
 }
 
 interface ProductState {
