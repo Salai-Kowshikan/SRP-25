@@ -28,7 +28,7 @@ interface AccountDetails {
 }
 
 interface Member {
-  id: string;
+  member_id: string;
   member_name: string;
   non_smartphone_user: boolean;
 }
@@ -42,7 +42,7 @@ interface Profile {
 }
 
 export default function ProfileScreen() {
-  const shgId = "shg_001"; // Replace with dynamic value
+  const shgId = "shg_001";
   const [profile, setProfile] = useState<Profile | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [newMemberName, setNewMemberName] = useState("");
@@ -77,7 +77,7 @@ export default function ProfileScreen() {
     setLoading(true);
     try {
       const res = await api.put(
-        `/api/profile/${shgId}/members/${editingMember.id}`,
+        `/api/profile/${shgId}/members/${editingMember.member_id}`,
         {
           member_name: editedName,
           non_smartphone_user: editedNonSmartphoneUser,
@@ -85,7 +85,7 @@ export default function ProfileScreen() {
       );
       setMembers((prev) =>
         prev.map((m) =>
-          m.id === editingMember.id
+          m.member_id === editingMember.member_id
             ? {
                 ...m,
                 member_name: editedName,
@@ -123,14 +123,15 @@ export default function ProfileScreen() {
     }
   };
 
+  const [pendingDelete, setPendingDelete] = useState(false); // New state to track delete action
+
   const deleteMember = async () => {
     if (!editingMember) return;
     setLoading(true);
     try {
-      //getting null value for editingMember.id
-      console.log(editingMember.id);
-      await api.delete(`/api/profile/${shgId}/members/${editingMember.id}`);
-      setMembers((prev) => prev.filter((m) => m.id !== editingMember.id));
+      console.log("Deleting member with ID:", editingMember.member_id); // Debugging log
+      await api.delete(`/api/profile/${shgId}/members/${editingMember.member_id}`);
+      setMembers((prev) => prev.filter((m) => m.member_id !== editingMember.member_id));
       setIsEditDialogVisible(false);
       setEditingMember(null);
       setEditedName("");
@@ -138,9 +139,16 @@ export default function ProfileScreen() {
       console.error("Delete error:", err);
     } finally {
       setLoading(false);
+      setPendingDelete(false); // Reset pending delete state
     }
   };
 
+  useEffect(() => {
+    if (pendingDelete && editingMember) {
+      deleteMember();
+    }
+  }, [pendingDelete, editingMember]);
+  console.log(members[0].member_id)
   return (
     <ScrollView style={{ padding: 16 }}>
       {loading && <ActivityIndicator size="large" color="#6200ee" />}
@@ -185,8 +193,8 @@ export default function ProfileScreen() {
           <DataTable.Title>Actions</DataTable.Title>
         </DataTable.Header>
 
-        {members.map((m) => (
-          <DataTable.Row key={m.id}>
+        {members.map((m) => 
+          <DataTable.Row key={m.member_id}>
             <DataTable.Cell>{m.member_name}</DataTable.Cell>
             <DataTable.Cell>
               {m.non_smartphone_user ? "No" : "Yes"}
@@ -195,8 +203,8 @@ export default function ProfileScreen() {
               <IconButton
                 icon="pencil"
                 onPress={() => {
-                  if (m.id) {
-                    setEditingMember(m); 
+                  if (m.member_id) {
+                    setEditingMember(m);
                     setEditedName(m.member_name);
                     setEditedNonSmartphoneUser(m.non_smartphone_user);
                     setIsEditDialogVisible(true);
@@ -207,7 +215,7 @@ export default function ProfileScreen() {
               />
             </DataTable.Cell>
           </DataTable.Row>
-        ))}
+        )}
       </DataTable>
 
       {/* Edit Dialog */}
@@ -244,7 +252,16 @@ export default function ProfileScreen() {
             </View>
           </Dialog.Content>
           <Dialog.Actions style={{ justifyContent: "space-between" }}>
-            <Button onPress={deleteMember} textColor="red">
+            <Button
+              onPress={() => {
+                if (editingMember) {
+                  setPendingDelete(true);
+                } else {
+                  console.error("Cannot delete. Editing member is null.");
+                }
+              }}
+              textColor="red"
+            >
               Delete
             </Button>
             <Button onPress={updateMember}>Save</Button>
