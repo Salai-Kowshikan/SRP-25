@@ -1,12 +1,7 @@
-import { View, StyleSheet, ScrollView, Image } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import { FAB, Text, Modal, Portal, TextInput, Button } from "react-native-paper";
 import { useState } from "react";
-import * as ImagePicker from "expo-image-picker";
-
-type ImagePickerResult = {
-  uri: string;
-  base64?: string | null;
-};
+import api from "@/api/api";
 
 const AddProductFAB = () => {
   const [AddProductModalVisible, setAddProductModalVisible] = useState(false);
@@ -33,83 +28,58 @@ const AddProductFAB = () => {
 };
 
 const AddProductForm = ({ dismiss }: { dismiss: (value: boolean) => void }) => {
-  const [productName, setProductName] = useState("");
-  const [sellingPrice, setSellingPrice] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [threshold, setThreshold] = useState("");
-  const [image, setImage] = useState<ImagePickerResult | null>(null); // Explicitly define the type
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
 
-  const handlePickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      quality: 1,
-      base64: true,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0]);
-    }
-  };
-
-  const handleListProduct = () => {
-    const productData = {
-      productName,
-      sellingPrice,
-      quantity,
-      threshold,
-      image: image?.base64,
+  const handleListProduct = async () => {
+    const payload = {
+      shg_id: "shg_001",
+      name,
+      description,
+      price: parseFloat(price),
     };
-    // console.log("Product Data:", JSON.stringify(productData, null, 2));
-    setProductName("");
-    setSellingPrice("");
-    setQuantity("");
-    setThreshold("");
-    setImage(null);
+
+    try {
+      const response = await api.post("/api/products/add", payload);
+      if (response.data.success) {
+        console.log("Product added successfully:", response.data);
+      } else {
+        console.error("Error adding product:", response.data.error);
+      }
+    } catch (error) {
+      console.error("API call failed:", error);
+    }
+
+    setName("");
+    setDescription("");
+    setPrice("");
     dismiss(false);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.formContainer}>
-        <Text style={styles.formTitle}>Add Product Form</Text>
+        <Text style={styles.formTitle}>New product listing</Text>
         <TextInput
           label="Product Name"
-          value={productName}
-          onChangeText={setProductName}
+          value={name}
+          onChangeText={setName}
           style={styles.input}
         />
         <TextInput
-          label="Selling Price"
-          value={sellingPrice}
-          onChangeText={setSellingPrice}
-          keyboardType="numeric"
+          label="Description"
+          value={description}
+          onChangeText={setDescription}
           style={styles.input}
         />
         <TextInput
-          label="Quantity"
-          value={quantity}
-          onChangeText={setQuantity}
+          label="Price"
+          value={price}
+          onChangeText={setPrice}
           keyboardType="numeric"
           style={styles.input}
         />
-        <TextInput
-          label="Threshold for Restock"
-          value={threshold}
-          onChangeText={setThreshold}
-          keyboardType="numeric"
-          style={styles.input}
-        />
-        <Button mode="outlined" onPress={handlePickImage} style={styles.input}>
-          {image ? "Change Image" : "Upload Image"}
-        </Button>
-        {image && (
-          <Image
-            source={{ uri: image.uri }}
-            style={styles.imagePreview}
-            resizeMode="contain"
-          />
-        )}
         <Button mode="contained" onPress={handleListProduct}>
           List Product
         </Button>
@@ -146,12 +116,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 10,
-  },
-  imagePreview: {
-    width: "100%",
-    height: 200,
-    marginBottom: 10,
-    borderRadius: 10,
   },
 });
 

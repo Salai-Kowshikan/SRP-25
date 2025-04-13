@@ -1,5 +1,8 @@
 import { BottomNavigation, Text } from "react-native-paper";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useProductStore } from "@/stores/productStore";
+import { useProfileStore } from "@/stores/profileStore";
+import { useMeetingStore } from "@/stores/meetingStore";
 import Forum from "@/Components/Forum";
 import MarketPlace from "@/Components/Marketplace";
 import Bookkeeping from "@/Components/Bookkeeping";
@@ -34,10 +37,19 @@ const Home = () => {
     },
   ]);
 
+  const fetchProducts = useProductStore((state) => state.fetchProducts);
+  const fetchProfile = useProfileStore((state) => state.fetchProfile);
+  const fetchMeetings = useMeetingStore((state) => state.fetchMeetings);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchProfile("shg_001");
+    fetchMeetings("shg_001");
+  }, [fetchProducts, fetchProfile, fetchMeetings]);
+
   const renderScene = BottomNavigation.SceneMap({
-    analytics: () => <Analytics/>,
+    analytics: () => <Analytics />,
     forum: () => <Forum />,
-    management: () => <Text>Community</Text>,
     marketplace: () => <MarketPlace />,
     bookkeeping: () => <Bookkeeping />,
   });

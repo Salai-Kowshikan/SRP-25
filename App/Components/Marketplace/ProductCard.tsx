@@ -1,55 +1,69 @@
-import { View, StyleSheet, Image } from "react-native";
-import { Text, Card, Button, Modal, Portal, TextInput } from "react-native-paper";
+import { View, StyleSheet } from "react-native";
+import { Text, Card, Button, Modal, Portal, TextInput, Switch } from "react-native-paper";
 import { useState } from "react";
+import { useProductStore } from "@/stores/productStore";
+import api from "@/api/api";
 
 type ProductCardProps = {
+  productId: string; // Added productId prop
   productName: string;
   sellingPrice: string;
-  imageUri: string;
-  quantity: string;
-  onModify: (updatedProduct: { productName: string; sellingPrice: string; quantity: string }) => void;
-  onViewSales: () => void;
+  description: string;
+  on_sale: boolean;
 };
 
 const ProductCard = ({
+  productId, // Destructure productId
   productName,
   sellingPrice,
-  imageUri,
-  quantity,
-  onModify,
-  onViewSales,
+  description,
+  on_sale,
 }: ProductCardProps) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [updatedName, setUpdatedName] = useState(productName);
   const [updatedPrice, setUpdatedPrice] = useState(sellingPrice);
-  const [updatedQuantity, setUpdatedQuantity] = useState(quantity);
+  const [updatedDescription, setUpdatedDescription] = useState(description);
+  const [updatedOnSale, setUpdatedOnSale] = useState(on_sale);
 
-  const handleSaveChanges = () => {
-    onModify({
-      productName: updatedName,
-      sellingPrice: updatedPrice,
-      quantity: updatedQuantity,
-    });
+  const { fetchProducts } = useProductStore();
+
+  const handleSaveChanges = async () => {
+    const payload = {
+      product_id: productId,
+      name: updatedName,
+      description: updatedDescription,
+      price: parseFloat(updatedPrice),
+      on_sale: updatedOnSale,
+    };
+
+    try {
+      const response = await api.put("/api/products/edit", payload);
+      if (response.data.success) {
+        console.log("Product updated successfully:", response.data);
+        await fetchProducts();
+      } else {
+        console.error("Error updating product:", response.data.error);
+      }
+    } catch (error) {
+      console.error("API call failed:", error);
+    }
+
     setIsModalVisible(false);
   };
 
   return (
     <>
-      <Card style={styles.card}>
+      <Card style={[styles.card, !on_sale && styles.dullCard]}>
         <Card.Content style={styles.cardContent}>
           <View style={styles.textContainer}>
             <Text style={styles.productName}>{productName}</Text>
             <Text style={styles.sellingPrice}>Price: ${sellingPrice}</Text>
-            <Text style={styles.quantity}>Quantity: {quantity}</Text>
+            <Text style={styles.description}>{description}</Text>
           </View>
-          <Image source={{ uri: imageUri }} style={styles.productImage} />
         </Card.Content>
         <Card.Actions style={styles.cardActions}>
           <Button mode="outlined" onPress={() => setIsModalVisible(true)} style={styles.actionButton}>
             Modify Listing
-          </Button>
-          <Button mode="contained" onPress={onViewSales} style={styles.actionButton}>
-            View Sales
           </Button>
         </Card.Actions>
       </Card>
@@ -75,17 +89,20 @@ const ProductCard = ({
             style={styles.input}
           />
           <TextInput
-            label="Quantity"
-            value={updatedQuantity}
-            onChangeText={setUpdatedQuantity}
-            keyboardType="numeric"
+            label="Description"
+            value={updatedDescription}
+            onChangeText={setUpdatedDescription}
             style={styles.input}
           />
+          <View style={styles.switchContainer}>
+            <Text>On Sale</Text>
+            <Switch
+              value={updatedOnSale}
+              onValueChange={setUpdatedOnSale}
+            />
+          </View>
           <Button mode="contained" onPress={handleSaveChanges} style={styles.saveButton}>
             Save Changes
-          </Button>
-          <Button mode="outlined" onPress={handleSaveChanges} style={styles.saveButton}>
-            Delete listing
           </Button>
         </Modal>
       </Portal>
@@ -99,14 +116,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
   },
+  dullCard: {
+    opacity: 0.5,
+  },
   cardContent: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   textContainer: {
     flex: 1,
-    marginRight: 10,
   },
   productName: {
     fontSize: 18,
@@ -116,15 +134,11 @@ const styles = StyleSheet.create({
   sellingPrice: {
     fontSize: 16,
     color: "gray",
+    marginBottom: 5,
   },
-  quantity: {
-    fontSize: 16,
+  description: {
+    fontSize: 14,
     color: "gray",
-  },
-  productImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
   },
   cardActions: {
     justifyContent: "space-between",
@@ -146,6 +160,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   input: {
+    marginBottom: 10,
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10,
   },
   saveButton: {

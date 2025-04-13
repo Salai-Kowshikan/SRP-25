@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import { Surface, Text, DataTable } from "react-native-paper";
+import { Surface, Text, DataTable, FAB } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import DialogBox from "@/Components/UI/DialogBox";
 import api from "@/api/api";
-
+import ExpenditureDialogBox from "./ExpenditureDialogBox";
 interface AccountsProps {
   shg_id: string;
 }
@@ -40,7 +40,7 @@ const Accounts = ({ shg_id }: AccountsProps) => {
       details: string;
     }[]
   >([]);
-  const [isEmpty, setIsEmpty] = useState(false); // New state to track empty responses
+  const [isEmpty, setIsEmpty] = useState(false);
 
   const [page, setPage] = useState(0);
   const [numberOfItemsPerPageList] = useState([5, 10, 15]);
@@ -54,13 +54,24 @@ const Accounts = ({ shg_id }: AccountsProps) => {
     String(currentDate.getFullYear())
   );
 
+  const [isAddExpenditureDialogVisible, setIsAddExpenditureDialogVisible] =
+    useState(false);
+  const [isAddEntryDialogVisible, setIsAddEntryDialogVisible] = useState(false);
+
+  const handleAddExpenditure = () => {
+    setIsAddExpenditureDialogVisible(true);
+  };
+
+  const closeAddExpenditureDialog = () => {
+    setIsAddExpenditureDialogVisible(false);
+  };
+
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         const response = await api.get<TransactionResponse[]>(
           `/api/transactions/${shg_id}?month=${selectedMonth}&year=${selectedYear}`
         );
-        console.log("Fetched transactions data:", response.data);
 
         if (response.data.length === 0) {
           setIsEmpty(true);
@@ -117,105 +128,143 @@ const Accounts = ({ shg_id }: AccountsProps) => {
   }, [itemsPerPage, selectedMonth, selectedYear]);
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Surface style={styles.filterSection} elevation={4} mode="flat">
-          <Text style={styles.filterTitle}>Filter Transactions</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedMonth}
-              onValueChange={(itemValue) => setSelectedMonth(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="January" value="01" />
-              <Picker.Item label="February" value="02" />
-              <Picker.Item label="March" value="03" />
-              <Picker.Item label="April" value="04" />
-              <Picker.Item label="May" value="05" />
-              <Picker.Item label="June" value="06" />
-              <Picker.Item label="July" value="07" />
-              <Picker.Item label="August" value="08" />
-              <Picker.Item label="September" value="09" />
-              <Picker.Item label="October" value="10" />
-              <Picker.Item label="November" value="11" />
-              <Picker.Item label="December" value="12" />
-            </Picker>
-            <Picker
-              selectedValue={selectedYear}
-              onValueChange={(itemValue) => setSelectedYear(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="2025" value="2025" />
-              <Picker.Item label="2024" value="2024" />
-              <Picker.Item label="2023" value="2023" />
-            </Picker>
-          </View>
-        </Surface>
+    <>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContainer, { paddingBottom: 80 }]}
+      >
+        <View style={styles.container}>
+          <Surface style={styles.filterSection} elevation={4} mode="flat">
+            <Text style={styles.filterTitle}>Filter Transactions</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedMonth}
+                onValueChange={(itemValue) => setSelectedMonth(itemValue)}
+                style={styles.picker}
+              >
+                <Picker.Item label="January" value="01" />
+                <Picker.Item label="February" value="02" />
+                <Picker.Item label="March" value="03" />
+                <Picker.Item label="April" value="04" />
+                <Picker.Item label="May" value="05" />
+                <Picker.Item label="June" value="06" />
+                <Picker.Item label="July" value="07" />
+                <Picker.Item label="August" value="08" />
+                <Picker.Item label="September" value="09" />
+                <Picker.Item label="October" value="10" />
+                <Picker.Item label="November" value="11" />
+                <Picker.Item label="December" value="12" />
+              </Picker>
+              <Picker
+                selectedValue={selectedYear}
+                onValueChange={(itemValue) => setSelectedYear(itemValue)}
+                style={styles.picker}
+              >
+                <Picker.Item label="2025" value="2025" />
+                <Picker.Item label="2024" value="2024" />
+                <Picker.Item label="2023" value="2023" />
+              </Picker>
+            </View>
+          </Surface>
 
-        <Surface style={styles.summary} elevation={4} mode="flat">
-          <Text style={styles.summaryText}>Revenue: {revenue}</Text>
-          <Text style={styles.summaryText}>Capital: {capital}</Text>
-          <Text style={styles.summaryText}>Profit: {profit}</Text>
-        </Surface>
+          <Surface style={styles.summary} elevation={4} mode="flat">
+            <Text style={styles.summaryText}>Revenue: {revenue}</Text>
+            <Text style={styles.summaryText}>Capital: {capital}</Text>
+            <Text style={styles.summaryText}>Profit: {profit}</Text>
+          </Surface>
 
-        <Surface style={styles.filters} elevation={4} mode="flat">
-          <Text style={styles.title}>Transactions</Text>
-          {isEmpty ? (
-            <Text style={styles.noDataText}>
-              No transactions available for the selected month and year.
-            </Text>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <DataTable>
-                <DataTable.Header>
-                  <DataTable.Title style={styles.column}>Date</DataTable.Title>
-                  <DataTable.Title style={styles.column}>Type</DataTable.Title>
-                  <DataTable.Title numeric style={styles.column}>
-                    Amount
-                  </DataTable.Title>
-                  <DataTable.Title style={styles.column}>Details</DataTable.Title>
-                </DataTable.Header>
+          <Surface style={styles.filters} elevation={4} mode="flat">
+            <Text style={styles.title}>Transactions</Text>
+            {isEmpty ? (
+              <Text style={styles.noDataText}>
+                No transactions available for the selected month and year.
+              </Text>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <DataTable>
+                  <DataTable.Header>
+                    <DataTable.Title style={[styles.column, styles.dateColumn]}>
+                      Date
+                    </DataTable.Title>
+                    <DataTable.Title style={[styles.column, styles.typeColumn]}>
+                      Type
+                    </DataTable.Title>
+                    <DataTable.Title
+                      numeric
+                      style={[styles.column, styles.amountColumn]}
+                    >
+                      Amount
+                    </DataTable.Title>
+                    <DataTable.Title
+                      style={[styles.column, styles.detailsColumn]}
+                    >
+                      Details
+                    </DataTable.Title>
+                  </DataTable.Header>
 
-                {filteredTransactions.slice(from, to).map((transaction) => (
-                  <DataTable.Row key={transaction.id}>
-                    <DataTable.Cell style={styles.column}>
-                      {transaction.date}
-                    </DataTable.Cell>
-                    <DataTable.Cell style={styles.column}>
-                      {transaction.type}
-                    </DataTable.Cell>
-                    <DataTable.Cell numeric style={styles.column}>
-                      {transaction.amount}
-                    </DataTable.Cell>
-                    <DataTable.Cell style={styles.column}>
-                      <DialogBox
-                        title="Transaction Details"
-                        trigger="View"
-                        content={JSON.stringify(transaction, null, 2)}
-                      />
-                    </DataTable.Cell>
-                  </DataTable.Row>
-                ))}
+                  {filteredTransactions.slice(from, to).map((transaction) => (
+                    <DataTable.Row key={transaction.id}>
+                      <DataTable.Cell
+                        style={[styles.column, styles.dateColumn]}
+                      >
+                        {transaction.date}
+                      </DataTable.Cell>
+                      <DataTable.Cell
+                        style={[styles.column, styles.typeColumn]}
+                      >
+                        {transaction.type}
+                      </DataTable.Cell>
+                      <DataTable.Cell
+                        numeric
+                        style={[styles.column, styles.amountColumn]}
+                      >
+                        {transaction.amount}
+                      </DataTable.Cell>
+                      <DataTable.Cell
+                        style={[styles.column, styles.detailsColumn]}
+                      >
+                        <DialogBox
+                          title="Transaction Details"
+                          trigger="View"
+                          content={JSON.stringify(transaction, null, 2)}
+                        />
+                      </DataTable.Cell>
+                    </DataTable.Row>
+                  ))}
 
-                <DataTable.Pagination
-                  page={page}
-                  numberOfPages={Math.ceil(
-                    filteredTransactions.length / itemsPerPage
-                  )}
-                  onPageChange={(page) => setPage(page)}
-                  label={`${from + 1}-${to} of ${filteredTransactions.length}`}
-                  numberOfItemsPerPageList={numberOfItemsPerPageList}
-                  numberOfItemsPerPage={itemsPerPage}
-                  onItemsPerPageChange={setItemsPerPage}
-                  showFastPaginationControls
-                  selectPageDropdownLabel={"Rows per page"}
-                />
-              </DataTable>
-            </ScrollView>
-          )}
-        </Surface>
-      </View>
-    </ScrollView>
+                  <DataTable.Pagination
+                    page={page}
+                    numberOfPages={Math.ceil(
+                      filteredTransactions.length / itemsPerPage
+                    )}
+                    onPageChange={(page) => setPage(page)}
+                    label={`${from + 1}-${to} of ${
+                      filteredTransactions.length
+                    }`}
+                    numberOfItemsPerPageList={numberOfItemsPerPageList}
+                    numberOfItemsPerPage={itemsPerPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                    showFastPaginationControls
+                    selectPageDropdownLabel={"Rows per page"}
+                  />
+                </DataTable>
+              </ScrollView>
+            )}
+          </Surface>
+        </View>
+      </ScrollView>
+
+      <FAB
+        style={styles.fab}
+        icon="plus"
+        onPress={handleAddExpenditure}
+        label="Add Expenditure"
+      />
+
+      <ExpenditureDialogBox
+        visible={isAddExpenditureDialogVisible}
+        onClose={closeAddExpenditureDialog}
+      />
+    </>
   );
 };
 
@@ -274,6 +323,29 @@ const styles = StyleSheet.create({
   },
   column: {
     paddingHorizontal: 10,
+    justifyContent: "space-evenly",
+  },
+  dateColumn: {
+    flex: 2,
+    textAlign: "left",
+  },
+  typeColumn: {
+    flex: 2,
+    textAlign: "left",
+  },
+  amountColumn: {
+    flex: 1,
+    textAlign: "right",
+  },
+  detailsColumn: {
+    flex: 3,
+    justifyContent: "flex-start",
+    alignItems: "center",
+  },
+  fab: {
+    position: "absolute",
+    right: 4,
+    bottom: 4,
   },
 });
 

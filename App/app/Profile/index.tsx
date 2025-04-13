@@ -5,6 +5,7 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
+  StyleSheet,
 } from "react-native";
 import {
   Card,
@@ -150,24 +151,18 @@ export default function ProfileScreen() {
   }, [pendingDelete, editingMember]);
   console.log(members[0].member_id)
   return (
-    <ScrollView style={{ padding: 16 }}>
+    <ScrollView style={styles.container}>
       {loading && <ActivityIndicator size="large" color="#6200ee" />}
 
       {profile && (
-        <Card style={{ marginBottom: 16 }}>
+        <Card style={styles.card}>
           <Card.Content>
-            <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-              {profile.shg_name}
-            </Text>
+            <Text style={styles.title}>{profile.shg_name}</Text>
             <Text>Balance: {profile.balance}</Text>
             <Text>Total Members: {members.length}</Text>
-            <Text style={{ fontSize: 15, fontWeight: "bold" }}>
-              Bank Details
-            </Text>
+            <Text style={styles.subtitle}>Bank Details</Text>
             <Text>Bank Name: {profile.account_details.bank_name}</Text>
-            <Text>
-              Account Number: {profile.account_details.account_number}
-            </Text>
+            <Text>Account Number: {profile.account_details.account_number}</Text>
             <Text>Account Type: {profile.account_details.account_type}</Text>
             <Text>IFSC Code: {profile.account_details.ifsc_code}</Text>
             <Text>Branch Name: {profile.account_details.branch_name}</Text>
@@ -181,7 +176,7 @@ export default function ProfileScreen() {
       <Button
         mode="contained"
         onPress={() => setIsAddDialogVisible(true)}
-        style={{ marginBottom: 16 }}
+        style={styles.addButton}
       >
         Add Member
       </Button>
@@ -310,3 +305,27 @@ export default function ProfileScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    paddingVertical: 24, 
+    marginVertical: 16,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  subtitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    marginTop: 8,
+  },
+  addButton: {
+    marginBottom: 16,
+  },
+});
