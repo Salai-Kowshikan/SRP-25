@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { useTheme } from "@react-navigation/native";
 import { BarChart } from "react-native-chart-kit";
-import axios from "axios";
-import RNPickerSelect from "react-native-picker-select";
+import { Picker } from "@react-native-picker/picker";
+import api from "@/api/api";
 
 const months = [
   { label: "January", value: "1" },
@@ -56,7 +56,7 @@ const Performance: React.FC<PerformanceProps> = ({
   useEffect(() => {
     const fetchPerformanceData = async () => {
       try {
-        const res = await axios.get("http://192.168.1.4:5000/analysis", {
+        const res = await api.get("/analysis", {
           params: {
             month: parseInt(selectedMonth),
             year: parseInt(selectedYear),
@@ -93,76 +93,78 @@ const Performance: React.FC<PerformanceProps> = ({
   };
 
   return (
-    <View >
-  
-      <Text>
-      Select Month:
-      </Text>
-      <RNPickerSelect
-      onValueChange={setSelectedMonth}
-      items={months}
-      placeholder={{ label: "Select month", value: null }}
-     
-      value={selectedMonth}
-      />
+    <View>
+      <Picker
+        selectedValue={selectedMonth}
+        onValueChange={(value) => setSelectedMonth(value)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Select month" value={null} />
+        {months.map((month) => (
+          <Picker.Item key={month.value} label={month.label} value={month.value} />
+        ))}
+      </Picker>
+      <Picker
+        selectedValue={selectedYear}
+        onValueChange={(value) => setSelectedYear(value)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Select year" value={null} />
+        {years.map((year) => (
+          <Picker.Item key={year.value} label={year.label} value={year.value} />
+        ))}
+      </Picker>
 
-      
-      <Text >
-      Select Year:
-      </Text>
-      <RNPickerSelect
-      onValueChange={setSelectedYear}
-      items={years}
-      placeholder={{ label: "Select year", value: null }}
-      
-      value={selectedYear}
+      <BarChart
+        data={chartData}
+        width={Dimensions.get("window").width - 32}
+        height={250}
+        fromZero
+        withCustomBarColorFromData
+        showValuesOnTopOfBars
+        yAxisLabel="₹"
+        yAxisSuffix=""
+        yAxisInterval={1}
+        verticalLabelRotation={0}
+        chartConfig={{
+          backgroundGradientFrom: "#ffffff",
+          backgroundGradientTo: "#ffffff",
+          color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+          barPercentage: 0.5,
+          useShadowColorFromDataset: false,
+        }}
       />
-
-   
-    <BarChart
-    data={chartData}
-    width={Dimensions.get("window").width - 32}
-    height={250}
-    fromZero
-    withCustomBarColorFromData
-    showValuesOnTopOfBars
-    yAxisLabel="₹"
-    yAxisSuffix=""
-    yAxisInterval={1}
-    verticalLabelRotation={0}
-    chartConfig={{
-      backgroundGradientFrom: "#ffffff",
-      backgroundGradientTo: "#ffffff",
-      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-      labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-      barPercentage: 0.5,
-      useShadowColorFromDataset: false,
-    }}
-    />
 
       <View style={{ backgroundColor: theme.colors.card, marginTop: 16, padding: 16, borderRadius: 8 }}>
-      <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
-        Revenue: ₹{revenue.toLocaleString("en-IN")}
-      </Text>
-      <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
-        Capital: ₹{capital.toLocaleString("en-IN")}
-      </Text>
-      <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
-        Expenditure: ₹{expenditures.toLocaleString("en-IN")}
-      </Text>
-      <Text
-        style={{
-        color: profit >= 0 ? theme.colors.primary : theme.colors.notification,
-        fontWeight: "bold",
-        fontSize: 16,
-        }}
-      >
-        {profit >= 0 ? "Profit" : "Loss"}: ₹{Math.abs(profit).toLocaleString("en-IN")}
-      </Text>
+        <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
+          Revenue: ₹{revenue.toLocaleString("en-IN")}
+        </Text>
+        <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
+          Capital: ₹{capital.toLocaleString("en-IN")}
+        </Text>
+        <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
+          Expenditure: ₹{expenditures.toLocaleString("en-IN")}
+        </Text>
+        <Text
+          style={{
+            color: profit >= 0 ? theme.colors.primary : theme.colors.notification,
+            fontWeight: "bold",
+            fontSize: 16,
+          }}
+        >
+          {profit >= 0 ? "Profit" : "Loss"}: ₹{Math.abs(profit).toLocaleString("en-IN")}
+        </Text>
       </View>
     </View>
   );
 };
 
+const styles = StyleSheet.create({
+  picker: {
+    height: 50,
+    marginBottom: 15,
+  },
+});
 
 export default Performance;

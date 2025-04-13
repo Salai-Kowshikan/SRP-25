@@ -13,7 +13,7 @@ const Home = () => {
     {
       key: "analytics",
       title: "Analytics",
-      focusedIcon: "calchart-box",
+      focusedIcon: "chart-box",
       unfocusedIcon: "chart-box-outline",
     },
     {
@@ -47,7 +47,6 @@ const Home = () => {
   const renderScene = BottomNavigation.SceneMap({
     analytics: () => <Analytics />,
     forum: () => <Forum />,
-    management: () => <Text>Community</Text>,
     marketplace: () => <MarketPlace />,
     bookkeeping: () => <Bookkeeping />,
   });

@@ -5,7 +5,6 @@ import { Picker } from "@react-native-picker/picker";
 import DialogBox from "@/Components/UI/DialogBox";
 import api from "@/api/api";
 import ExpenditureDialogBox from "./ExpenditureDialogBox";
-
 interface AccountsProps {
   shg_id: string;
 }
@@ -41,7 +40,7 @@ const Accounts = ({ shg_id }: AccountsProps) => {
       details: string;
     }[]
   >([]);
-  const [isEmpty, setIsEmpty] = useState(false); // New state to track empty responses
+  const [isEmpty, setIsEmpty] = useState(false);
 
   const [page, setPage] = useState(0);
   const [numberOfItemsPerPageList] = useState([5, 10, 15]);
@@ -57,6 +56,7 @@ const Accounts = ({ shg_id }: AccountsProps) => {
 
   const [isAddExpenditureDialogVisible, setIsAddExpenditureDialogVisible] =
     useState(false);
+  const [isAddEntryDialogVisible, setIsAddEntryDialogVisible] = useState(false);
 
   const handleAddExpenditure = () => {
     setIsAddExpenditureDialogVisible(true);
