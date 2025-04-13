@@ -14,9 +14,10 @@ interface AccountDetails {
 interface Profile {
   shg_id: string;
   shg_name: string;
-  rating: number;
+  members_count: number;
   balance: number;
   account_details: AccountDetails;
+  members: Member[]; // Add this line
 }
 
 interface Member {
