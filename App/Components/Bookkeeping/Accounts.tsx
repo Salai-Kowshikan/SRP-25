@@ -168,26 +168,26 @@ const Accounts = ({ shg_id }: AccountsProps) => {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <DataTable>
                 <DataTable.Header>
-                  <DataTable.Title style={styles.column}>Date</DataTable.Title>
-                  <DataTable.Title style={styles.column}>Type</DataTable.Title>
-                  <DataTable.Title numeric style={styles.column}>
+                  <DataTable.Title style={[styles.column, styles.dateColumn]}>Date</DataTable.Title>
+                  <DataTable.Title style={[styles.column, styles.typeColumn]}>Type</DataTable.Title>
+                  <DataTable.Title numeric style={[styles.column, styles.amountColumn]}>
                     Amount
                   </DataTable.Title>
-                  <DataTable.Title style={styles.column}>Details</DataTable.Title>
+                  <DataTable.Title style={[styles.column, styles.detailsColumn]}>Details</DataTable.Title>
                 </DataTable.Header>
 
                 {filteredTransactions.slice(from, to).map((transaction) => (
                   <DataTable.Row key={transaction.id}>
-                    <DataTable.Cell style={styles.column}>
+                    <DataTable.Cell style={[styles.column, styles.dateColumn]}>
                       {transaction.date}
                     </DataTable.Cell>
-                    <DataTable.Cell style={styles.column}>
+                    <DataTable.Cell style={[styles.column, styles.typeColumn]}>
                       {transaction.type}
                     </DataTable.Cell>
-                    <DataTable.Cell numeric style={styles.column}>
+                    <DataTable.Cell numeric style={[styles.column, styles.amountColumn]}>
                       {transaction.amount}
                     </DataTable.Cell>
-                    <DataTable.Cell style={styles.column}>
+                    <DataTable.Cell style={[styles.column, styles.detailsColumn]}>
                       <DialogBox
                         title="Transaction Details"
                         trigger="View"
@@ -274,6 +274,24 @@ const styles = StyleSheet.create({
   },
   column: {
     paddingHorizontal: 10,
+    justifyContent: "space-evenly",
+  },
+  dateColumn: {
+    flex: 2,
+    textAlign: "left",
+  },
+  typeColumn: {
+    flex: 2,
+    textAlign: "left",
+  },
+  amountColumn: {
+    flex: 1,
+    textAlign: "right",
+  },
+  detailsColumn: {
+    flex: 3,
+    justifyContent: "flex-start",
+    alignItems: "center",
   },
 });
 
