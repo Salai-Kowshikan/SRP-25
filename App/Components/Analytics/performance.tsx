@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
-import { useTheme } from "@react-navigation/native";
+import { View, Dimensions } from "react-native";
+import { useTheme, Surface, Text } from "react-native-paper";
 import { BarChart } from "react-native-chart-kit";
 import { Picker } from "@react-native-picker/picker";
 import api from "@/api/api";
@@ -93,11 +93,14 @@ const Performance: React.FC<PerformanceProps> = ({
   };
 
   return (
-    <View>
+    <View style={{ flex: 1, padding: 16 }}>
       <Picker
         selectedValue={selectedMonth}
         onValueChange={(value) => setSelectedMonth(value)}
-        style={styles.picker}
+        style={{
+          height: 50,
+          marginBottom: 15,
+        }}
       >
         <Picker.Item label="Select month" value={null} />
         {months.map((month) => (
@@ -107,13 +110,32 @@ const Performance: React.FC<PerformanceProps> = ({
       <Picker
         selectedValue={selectedYear}
         onValueChange={(value) => setSelectedYear(value)}
-        style={styles.picker}
+        style={{
+          height: 50,
+          marginBottom: 15,
+        }}
       >
         <Picker.Item label="Select year" value={null} />
         {years.map((year) => (
           <Picker.Item key={year.value} label={year.label} value={year.value} />
         ))}
       </Picker>
+
+      <Surface style={styles.statsbox} elevation={4} mode="flat">
+        <Text>
+          Revenue: ₹{revenue.toLocaleString("en-IN")}
+        </Text>
+        <Text>
+          Capital: ₹{capital.toLocaleString("en-IN")}
+        </Text>
+        <Text >
+          Expenditure: ₹{expenditures.toLocaleString("en-IN")}
+        </Text>
+        <Text
+        >
+          {profit >= 0 ? "Profit" : "Loss"}: ₹{Math.abs(profit).toLocaleString("en-IN")}
+        </Text>
+      </Surface>
 
       <BarChart
         data={chartData}
@@ -127,44 +149,34 @@ const Performance: React.FC<PerformanceProps> = ({
         yAxisInterval={1}
         verticalLabelRotation={0}
         chartConfig={{
-          backgroundGradientFrom: "#ffffff",
-          backgroundGradientTo: "#ffffff",
-          color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+          backgroundGradientFrom: theme.colors.surface,
+          backgroundGradientTo: theme.colors.surface,
+          color: (opacity = 1) => theme.colors.primary,
+          labelColor: (opacity = 1) => theme.colors.onSurface,
           barPercentage: 0.5,
           useShadowColorFromDataset: false,
         }}
       />
-
-      <View style={{ backgroundColor: theme.colors.card, marginTop: 16, padding: 16, borderRadius: 8 }}>
-        <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
-          Revenue: ₹{revenue.toLocaleString("en-IN")}
-        </Text>
-        <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
-          Capital: ₹{capital.toLocaleString("en-IN")}
-        </Text>
-        <Text style={{ color: theme.colors.text, fontSize: 16, marginBottom: 8 }}>
-          Expenditure: ₹{expenditures.toLocaleString("en-IN")}
-        </Text>
-        <Text
-          style={{
-            color: profit >= 0 ? theme.colors.primary : theme.colors.notification,
-            fontWeight: "bold",
-            fontSize: 16,
-          }}
-        >
-          {profit >= 0 ? "Profit" : "Loss"}: ₹{Math.abs(profit).toLocaleString("en-IN")}
-        </Text>
-      </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  picker: {
-    height: 50,
-    marginBottom: 15,
+const styles = {
+  surface: {
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    elevation: 4,
   },
-});
+  statText: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  statsbox: {
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+};
 
 export default Performance;

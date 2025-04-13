@@ -1,4 +1,4 @@
-import { Modal, Portal, Button, Text, TextInput, Checkbox } from "react-native-paper";
+import { Modal, Portal, Button, Text, TextInput, Checkbox, useTheme } from "react-native-paper";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -10,6 +10,7 @@ interface AddEntryDialogBoxProps {
 }
 
 const AddEntryDialogBox = ({ visible, onClose }: AddEntryDialogBoxProps) => {
+  const theme = useTheme();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedAttendees, setSelectedAttendees] = useState<Record<string, boolean>>({});
@@ -52,39 +53,52 @@ const AddEntryDialogBox = ({ visible, onClose }: AddEntryDialogBoxProps) => {
 
   return (
     <Portal>
-      <Modal visible={visible} onDismiss={onClose} contentContainerStyle={styles.modalContainer}>
+      <Modal
+        visible={visible}
+        onDismiss={onClose}
+        contentContainerStyle={{
+          ...styles.modalContainer,
+          backgroundColor: theme.colors.surface,
+        }}
+      >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <Text style={styles.title}>Add New Meeting</Text>
-          <Button mode="outlined" onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
+          <Text style={{ ...styles.title, color: theme.colors.onSurface }}>Add New Meeting</Text>
+          <Button
+            mode="outlined"
+            onPress={() => setShowDatePicker(true)}
+            style={{ ...styles.datePickerButton, borderColor: theme.colors.primary }}
+          >
             {date ? date.toISOString().split("T")[0] : "Select Date"}
           </Button>
           {showDatePicker && (
             <DateTimePicker value={date || new Date()} mode="date" display="default" onChange={handleDateChange} />
           )}
-          <Text style={styles.subtitle}>Select Attendees</Text>
+          <Text style={{ ...styles.subtitle, color: theme.colors.onSurface }}>Select Attendees</Text>
           <ScrollView style={styles.attendeesContainer}>
             {members.map((member) => (
               <View key={member.member_id} style={styles.checkboxContainer}>
                 <Checkbox
                   status={selectedAttendees[member.member_id] ? "checked" : "unchecked"}
                   onPress={() => toggleAttendee(member.member_id)}
+                  color={theme.colors.primary}
                 />
-                <Text>{member.member_name}</Text>
+                <Text style={{ color: theme.colors.onSurface }}>{member.member_name}</Text>
               </View>
             ))}
           </ScrollView>
           <TextInput
             label="Minutes of the Meeting"
-            style={styles.input}
+            style={{ ...styles.input, backgroundColor: theme.colors.surface }}
             multiline
             value={minutes}
             onChangeText={setMinutes}
+            theme={{ colors: { text: theme.colors.onSurface, placeholder: theme.colors.outline } }}
           />
           <View style={styles.buttonContainer}>
-            <Button mode="contained" onPress={handleSubmit} style={styles.button}>
+            <Button mode="contained" onPress={handleSubmit} style={{ ...styles.button, backgroundColor: theme.colors.primary }}>
               Submit
             </Button>
-            <Button mode="outlined" onPress={onClose} style={styles.button}>
+            <Button mode="outlined" onPress={onClose} style={{ ...styles.button, borderColor: theme.colors.primary }}>
               Cancel
             </Button>
           </View>
@@ -96,7 +110,6 @@ const AddEntryDialogBox = ({ visible, onClose }: AddEntryDialogBoxProps) => {
 
 const styles = StyleSheet.create({
   modalContainer: {
-    backgroundColor: "white",
     padding: 20,
     marginHorizontal: 20,
     borderRadius: 8,
