@@ -1,5 +1,7 @@
 import { BottomNavigation, Text } from "react-native-paper";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useProductStore } from "@/stores/productStore";
+import { useProfileStore } from "@/stores/profileStore";
 import Forum from "@/Components/Forum";
 import MarketPlace from "@/Components/Marketplace";
 import Bookkeeping from "@/Components/Bookkeeping";
@@ -11,7 +13,7 @@ const Home = () => {
     {
       key: "analytics",
       title: "Analytics",
-      focusedIcon: "chart-box",
+      focusedIcon: "calchart-box",
       unfocusedIcon: "chart-box-outline",
     },
     {
@@ -34,8 +36,16 @@ const Home = () => {
     },
   ]);
 
+  const fetchProducts = useProductStore((state) => state.fetchProducts);
+  const fetchProfile = useProfileStore((state) => state.fetchProfile);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchProfile("shg_001");
+  }, [fetchProducts, fetchProfile]);
+
   const renderScene = BottomNavigation.SceneMap({
-    analytics: () => <Analytics/>,
+    analytics: () => <Analytics />,
     forum: () => <Forum />,
     management: () => <Text>Community</Text>,
     marketplace: () => <MarketPlace />,

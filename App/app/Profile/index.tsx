@@ -5,6 +5,7 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
+  StyleSheet,
 } from "react-native";
 import {
   Card,
@@ -42,7 +43,7 @@ interface Profile {
 }
 
 export default function ProfileScreen() {
-  const shgId = "shg_001"; // Replace with dynamic value
+  const shgId = "shg_001";
   const [profile, setProfile] = useState<Profile | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [newMemberName, setNewMemberName] = useState("");
@@ -127,7 +128,6 @@ export default function ProfileScreen() {
     if (!editingMember) return;
     setLoading(true);
     try {
-      //getting null value for editingMember.id
       console.log(editingMember.id);
       await api.delete(`/api/profile/${shgId}/members/${editingMember.id}`);
       setMembers((prev) => prev.filter((m) => m.id !== editingMember.id));
@@ -142,24 +142,18 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={{ padding: 16 }}>
+    <ScrollView style={styles.container}>
       {loading && <ActivityIndicator size="large" color="#6200ee" />}
 
       {profile && (
-        <Card style={{ marginBottom: 16 }}>
+        <Card style={styles.card}>
           <Card.Content>
-            <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-              {profile.shg_name}
-            </Text>
+            <Text style={styles.title}>{profile.shg_name}</Text>
             <Text>Balance: {profile.balance}</Text>
             <Text>Total Members: {members.length}</Text>
-            <Text style={{ fontSize: 15, fontWeight: "bold" }}>
-              Bank Details
-            </Text>
+            <Text style={styles.subtitle}>Bank Details</Text>
             <Text>Bank Name: {profile.account_details.bank_name}</Text>
-            <Text>
-              Account Number: {profile.account_details.account_number}
-            </Text>
+            <Text>Account Number: {profile.account_details.account_number}</Text>
             <Text>Account Type: {profile.account_details.account_type}</Text>
             <Text>IFSC Code: {profile.account_details.ifsc_code}</Text>
             <Text>Branch Name: {profile.account_details.branch_name}</Text>
@@ -173,7 +167,7 @@ export default function ProfileScreen() {
       <Button
         mode="contained"
         onPress={() => setIsAddDialogVisible(true)}
-        style={{ marginBottom: 16 }}
+        style={styles.addButton}
       >
         Add Member
       </Button>
@@ -196,7 +190,7 @@ export default function ProfileScreen() {
                 icon="pencil"
                 onPress={() => {
                   if (m.id) {
-                    setEditingMember(m); 
+                    setEditingMember(m);
                     setEditedName(m.member_name);
                     setEditedNonSmartphoneUser(m.non_smartphone_user);
                     setIsEditDialogVisible(true);
@@ -293,3 +287,27 @@ export default function ProfileScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    paddingVertical: 24, 
+    marginVertical: 16,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  subtitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    marginTop: 8,
+  },
+  addButton: {
+    marginBottom: 16,
+  },
+});

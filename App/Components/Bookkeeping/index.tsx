@@ -32,7 +32,6 @@ const Bookkeeping = () => {
     const fetchMeetings = async () => {
       try {
         const response = await api.get<{ data: MeetingResponse[] }>(`/api/meetings/${shg_id}`);
-        console.log("Fetched meetings data:", response.data);
 
         const mappedMeetings: MappedMeeting[] = response.data.data.map((meeting) => ({
           id: meeting.meeting_id,
