@@ -147,6 +147,13 @@ export default function Main() {
       >
         Debug: Go to Home
       </Button>
+      <Button
+        mode="outlined"
+        onPress={() => router.replace("/Users")}
+        style={styles.debugButton}
+      >
+        Go to Users
+      </Button>
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
