@@ -8,6 +8,7 @@ from routes.analytics import analytics_bp
 from routes.products import products_bp
 from routes.forum import forum_bp
 from routes.getSalesAnalytics import sales_analytics_bp
+from routes.marketplace import marketplace_bp
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -20,6 +21,7 @@ app.register_blueprint(products_bp, url_prefix='/api/products')
 app.register_blueprint(forum_bp, url_prefix='/api/forum')
 app.register_blueprint(analytics_bp)
 app.register_blueprint(sales_analytics_bp)
+app.register_blueprint(marketplace_bp, url_prefix='/api/marketplace')
 
 
 @app.route('/')

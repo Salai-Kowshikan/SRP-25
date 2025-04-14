@@ -4,6 +4,8 @@ import { useTheme, Card } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import { useProductStore } from "@/stores/productStore";
 import { useSalesStore } from "@/stores/salesStore";
+import { LineChart } from "react-native-chart-kit";
+import { Dimensions } from "react-native";
 
 const Sales = () => {
   const theme = useTheme();
@@ -12,7 +14,7 @@ const Sales = () => {
     sales,
     monthlySales,
     fetchSales,
-    resetSales
+    resetSales,
   } = useSalesStore();
 
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
@@ -46,6 +48,28 @@ const Sales = () => {
       resetSales();
     }
   }, [selectedProduct]);
+
+  const fullYearData = Array(12).fill(0);
+  monthlySales.forEach(({ month, price_sold }) => {
+    const monthIndex = Number(month) - 1; 
+    if (monthIndex >= 0 && monthIndex < 12) {
+      fullYearData[monthIndex] = price_sold;
+    }
+  });
+  
+  const formattedData = {
+    labels: [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ],
+    datasets: [
+      {
+        data: fullYearData,
+        strokeWidth: 3, // Slightly thicker line to make it more visible
+        color: (opacity = 1) => theme.colors.primary,
+      },
+    ],
+  };
 
   return (
     <View style={styles.container}>
@@ -97,24 +121,56 @@ const Sales = () => {
       )}
 
       {monthlySales.length > 0 && (
-        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Card.Content>
-            <Text style={[styles.cardTitle, { color: theme.colors.primary }]}>Monthly Sales</Text>
-            {monthlySales.map((month) => (
-              <View key={`${month.month}-${month.year}`} style={{ marginBottom: 8 }}>
-                <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
-                  <Text style={{ fontWeight: "bold" }}>Month:</Text> {month.month} {month.year}
-                </Text>
-                <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
-                  <Text style={{ fontWeight: "bold" }}>Quantity Sold:</Text> {month.quantity_sold}
-                </Text>
-                <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
-                  <Text style={{ fontWeight: "bold" }}>Total Price:</Text> ${month.price_sold}
-                </Text>
-              </View>
-            ))}
-          </Card.Content>
-        </Card>
+        <>
+          <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+            <Card.Content>
+              <Text style={[styles.cardTitle, { color: theme.colors.primary }]}>Monthly Sales</Text>
+              {monthlySales.map((month) => (
+                <View key={`${month.month}-${month.year}`} style={{ marginBottom: 8 }}>
+                  <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
+                    <Text style={{ fontWeight: "bold" }}>Month:</Text> {month.month} {month.year}
+                  </Text>
+                  <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
+                    <Text style={{ fontWeight: "bold" }}>Quantity Sold:</Text> {month.quantity_sold}
+                  </Text>
+                  <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
+                    <Text style={{ fontWeight: "bold" }}>Total Price:</Text> ${month.price_sold}
+                  </Text>
+                </View>
+              ))}
+            </Card.Content>
+          </Card>
+
+         
+              <Text style={[styles.cardTitle, { color: theme.colors.primary }]}>Monthly Sales Trend</Text>
+              <LineChart
+                data={formattedData}
+                width={Dimensions.get("window").width - 32}
+                height={220}
+                chartConfig={{
+                  backgroundColor: theme.colors.surface,
+                  backgroundGradientFrom: theme.colors.surface,
+                  backgroundGradientTo: theme.colors.surface,
+                  decimalPlaces: 2,
+                  color: (opacity = 1) => theme.colors.primary,
+                  labelColor: (opacity = 1) => theme.colors.onSurface,
+                  style: {
+                    borderRadius: 16,
+                  },
+                  propsForDots: {
+                    r: "3", 
+                    strokeWidth: "2",
+                    stroke: theme.colors.primary,
+                  },
+                }}
+                withDots={true}
+                withInnerLines={false}
+                withOuterLines={false}
+                bezier
+                
+              />
+           
+        </>
       )}
     </View>
   );
