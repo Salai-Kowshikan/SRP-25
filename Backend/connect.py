@@ -2,6 +2,7 @@ import psycopg2
 from psycopg2 import pool
 from dotenv import load_dotenv
 import os
+from supabase import create_client
 
 load_dotenv()
 
@@ -10,6 +11,9 @@ PASSWORD = os.getenv("password")
 HOST = os.getenv("host")
 PORT = os.getenv("port")
 DBNAME = os.getenv("dbname")
+
+SUPABASE_URL = os.getenv("supabase_url")
+SUPABASE_KEY = os.getenv("supabase_key")
 
 # Initialize connection pool
 try:
@@ -26,6 +30,13 @@ try:
 except Exception as e:
     print(f"Failed to create connection pool: {e}")
     db_pool = None
+
+try:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    print("Supabase client initialized successfully!")
+except Exception as e:
+    print(f"Failed to initialize Supabase client: {e}")
+    supabase = None
 
 def get_db_connection():
     """
@@ -61,3 +72,13 @@ if __name__ == "__main__":
         cursor.close()
         release_db_connection(connection)
         print("Connection released.")
+
+
+def get_supabase_client():
+    """
+    Returns the initialized Supabase client.
+    """
+    if supabase:
+        return supabase
+    else:
+        raise Exception("Supabase client is not initialized.")

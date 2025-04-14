@@ -106,7 +106,7 @@ export default function Forum() {
                 style={styles.container}
                 showsVerticalScrollIndicator={false}
                 onScroll={onScroll}
-                scrollEventThrottle={16} // Ensures smooth scroll event handling
+                scrollEventThrottle={16} 
             >
                 {activities.map((activity, index) => (
                     <Card key={index} style={styles.card}>

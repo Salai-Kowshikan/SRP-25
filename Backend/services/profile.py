@@ -1,5 +1,34 @@
 from connect import get_db_connection, release_db_connection
 
+
+def get_shg_name(shg_id):
+    """
+    Fetch SHG name from the database using the provided SHG ID.
+    """
+    try:
+        connection = get_db_connection()
+        if not connection:
+            print("Database connection failed.")
+            return None
+
+        query = "SELECT username FROM shg_info WHERE shg_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(query, (shg_id,))
+        result = cursor.fetchone()
+        cursor.close()
+        release_db_connection(connection)
+
+        if result:
+            print(f"Fetched SHG name for ID {shg_id}: {result[0]}")
+            return result[0]
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching SHG name: {e}")
+        if connection:
+            release_db_connection(connection)
+        return None
+
 def get_shg_profile(shg_id):
     """
     Fetch SHG profile from the database using the provided SHG ID.
