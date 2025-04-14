@@ -45,27 +45,23 @@ def organize_data(month=None, year=None):
     expenditure_transactions = filter_expenditure_transactions(transactions)
     sales_transactions = filter_sales_transactions(transactions)
 
-
     transaction_ids = set(t["id"] for t in sales_transactions)
 
- 
     filtered_sales = filter_sales_by_transactions(all_sales, transaction_ids)
     filtered_expenditures = filter_expenditure_by_transactions(all_expenditures, transaction_ids)
 
-   
     capital = calculate_total_funds(fund_transactions)
     revenue = calculate_total_revenue(filtered_sales)
     expenses = calculate_total_expenditure(expenditure_transactions)
     profit = calculate_profit(revenue, expenses)
     profit_percent = calculate_profit_percentage(profit, capital)
 
- 
     return {
         "total_funds_received": capital,
         "total_revenue": revenue,
         "total_expenditure": expenses,
         "net_profit": profit,
         "profit_percentage": profit_percent,
-        "filtered_sales_count": len(filtered_sales),
+        "filtered_sales": filtered_sales,  
         "filtered_expenditures_count": len(filtered_expenditures)
     }

@@ -6,6 +6,7 @@ from routes.transactions import transactions_bp
 from routes.profileData import profile_bp
 from routes.analytics import analytics_bp
 from routes.products import products_bp
+from routes.getSalesAnalytics import sales_analytics_bp
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -16,6 +17,7 @@ app.register_blueprint(transactions_bp, url_prefix='/api/transactions')
 app.register_blueprint(profile_bp, url_prefix='/api/profile')
 app.register_blueprint(products_bp, url_prefix='/api/products')
 app.register_blueprint(analytics_bp)
+app.register_blueprint(sales_analytics_bp)
 
 
 @app.route('/')
