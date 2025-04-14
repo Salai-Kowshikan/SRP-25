@@ -129,3 +129,53 @@ def edit_product(product_id, name, description, price, on_sale):
         if connection:
             release_db_connection(connection)
         return {"success": False, "error": str(e)}
+
+def get_products_by_ids(product_ids):
+    """
+    Fetch product details for an array of product IDs.
+
+    Args:
+        product_ids (list): A list of product IDs.
+
+    Returns:
+        dict: A dictionary with success status and product details or error message.
+    """
+    try:
+        print(f"Fetching products for IDs: {product_ids}")
+        connection = get_db_connection()
+        if not connection:
+            print("Database connection failed.")
+            return {"success": False, "error": "Database connection failed."}
+
+        cursor = connection.cursor()
+        query = f"""
+            SELECT *
+            FROM products
+            WHERE id IN ({','.join(['%s'] * len(product_ids))})
+        """
+        print(f"Executing query: {query}")
+        cursor.execute(query, tuple(product_ids))
+        rows = cursor.fetchall()
+        print(f"Query executed successfully. Rows fetched: {len(rows)}")
+
+        products = [
+            {
+                "id": row[0],
+                "shg_id": row[1],
+                "name": row[2],
+                "description": row[3],
+                "price": row[4],
+                "on_sale": row[5]
+            }
+            for row in rows
+        ]
+        print(f"Processed products: {products}")
+
+        cursor.close()
+        release_db_connection(connection)
+        return {"success": True, "products": products}
+    except Exception as e:
+        print(f"Error fetching products by IDs: {e}")
+        if connection:
+            release_db_connection(connection)
+        return {"success": False, "error": str(e)}

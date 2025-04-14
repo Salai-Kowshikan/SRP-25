@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from services.products import get_products_by_shg, add_product, edit_product
+from services.products import *
 
 products_bp = Blueprint('products', __name__)
 
@@ -68,4 +68,25 @@ def edit_existing_product():
         return jsonify(response), (200 if response["success"] else 500)
     except Exception as e:
         print(f"Error in edit_existing_product route: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@products_bp.route('/fetch-by-ids', methods=['POST'])
+def fetch_products_by_ids():
+    """
+    Fetch product details for an array of product IDs.
+    Request JSON Body:
+        - product_ids: A list of product IDs (list of int).
+    """
+    try:
+        data = request.get_json()
+        print(f"Received request to fetch products by IDs: {data}")
+        product_ids = data.get('product_ids')
+
+        if not product_ids or not isinstance(product_ids, list):
+            return jsonify({"success": False, "error": "Invalid or missing product_ids."}), 400
+
+        response = get_products_by_ids(product_ids)
+        return jsonify(response), (200 if response["success"] else 500)
+    except Exception as e:
+        print(f"Error in fetch_products_by_ids route: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
