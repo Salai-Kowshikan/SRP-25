@@ -44,16 +44,21 @@ export const useSalesStore = create<SalesState>((set) => ({
   fetchSales: async (productId, year) => {
     try {
       const response = await api.get(`/salesAnalytics?product_id=${productId}&year=${year}`);
-      const { data } = response.data;
-      
+      const result = response.data;
+  
       set(() => ({
-        sales: data.sales,
-        monthlySales: data.monthly_sales,
+        sales: [], // No sales field in response, so keep it empty
+        monthlySales: result.monthly_sales || [],
       }));
     } catch (error) {
       console.error("Failed to fetch sales data:", error);
+      set(() => ({
+        sales: [],
+        monthlySales: [],
+      }));
     }
-  },
+  }
+  ,
 
   resetSales: () => set(() => ({
     sales: [],

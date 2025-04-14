@@ -1,19 +1,26 @@
-
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { useTheme, Card } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import { useProductStore } from "@/stores/productStore";
 import { useSalesStore } from "@/stores/salesStore";
+
 const Sales = () => {
   const theme = useTheme();
   const { products, fetchProducts } = useProductStore();
+  const {
+    sales,
+    monthlySales,
+    fetchSales,
+    resetSales
+  } = useSalesStore();
+
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const selectedProductDetails = products.find(
-    (product) => product.name === selectedProduct
+    (product) => product.id === selectedProduct
   );
 
   useEffect(() => {
@@ -29,6 +36,16 @@ const Sales = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const year = new Date().getFullYear().toString();
+
+    if (selectedProduct) {
+      fetchSales(selectedProduct, year);
+    } else {
+      resetSales();
+    }
+  }, [selectedProduct]);
 
   return (
     <View style={styles.container}>
@@ -55,7 +72,7 @@ const Sales = () => {
           >
             <Picker.Item label="Select a product" value={null} enabled={false} />
             {products.map((product) => (
-              <Picker.Item key={product.id} label={product.name} value={product.name} />
+              <Picker.Item key={product.id} label={product.name} value={product.id} />
             ))}
           </Picker>
         </View>
@@ -75,7 +92,27 @@ const Sales = () => {
             <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
               <Text style={{ fontWeight: "bold" }}>Description:</Text> {selectedProductDetails.description}
             </Text>
-           
+          </Card.Content>
+        </Card>
+      )}
+
+      {monthlySales.length > 0 && (
+        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+          <Card.Content>
+            <Text style={[styles.cardTitle, { color: theme.colors.primary }]}>Monthly Sales</Text>
+            {monthlySales.map((month) => (
+              <View key={`${month.month}-${month.year}`} style={{ marginBottom: 8 }}>
+                <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
+                  <Text style={{ fontWeight: "bold" }}>Month:</Text> {month.month} {month.year}
+                </Text>
+                <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
+                  <Text style={{ fontWeight: "bold" }}>Quantity Sold:</Text> {month.quantity_sold}
+                </Text>
+                <Text style={[styles.cardText, { color: theme.colors.onSurface }]}>
+                  <Text style={{ fontWeight: "bold" }}>Total Price:</Text> ${month.price_sold}
+                </Text>
+              </View>
+            ))}
           </Card.Content>
         </Card>
       )}
