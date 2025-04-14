@@ -1,4 +1,4 @@
-from services.forum import (add_post)
+from services.forum import (add_post, get_recent_posts, get_post_by_shg_id)
 from services.profile import get_shg_name
 
 from flask import Blueprint, request, jsonify
@@ -34,3 +34,37 @@ def create_post():
         return jsonify({"message": "Post created successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@forum_bp.route('/posts/<string:shg_id>', methods=['GET'])
+def get_posts(shg_id):
+    """
+    Endpoint to fetch posts for a specific SHG ID.
+    """
+    print(f"Received request to fetch posts for SHG ID: {shg_id}")
+    
+    try:
+        posts = get_post_by_shg_id(shg_id)
+        if not posts:
+            return jsonify({"message": "No posts found"}), 404
+        return jsonify(posts), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@forum_bp.route('/posts', methods=['GET'])
+def get_all_posts_endpoint():
+    """
+    Endpoint to fetch all posts.
+    """
+    print("Received request to fetch all posts")
+    
+    try:
+        posts = get_recent_posts()
+        print(f"Fetched {len(posts)} posts")
+        if not posts:
+            return jsonify({"message": "No posts found"}), 404
+        return jsonify(posts), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+

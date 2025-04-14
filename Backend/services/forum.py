@@ -64,3 +64,81 @@ def add_post(description, details, image_file, phone, shg_id, shg_name):
 
     finally:
         release_db_connection(db)
+
+def get_recent_posts(limit=8):
+    """
+    Fetches the most recent posts for a given SHG ID bucket
+    """
+    db = get_db_connection()
+    try:
+        query = """
+        SELECT * FROM forum
+        ORDER BY created_at DESC
+        LIMIT %s
+        """
+        cursor = db.cursor()
+        cursor.execute(query,(limit,))
+        posts = cursor.fetchall()
+        print(f"Fetched {len(posts)} recent posts from the database.")
+        cursor.close()
+        
+        post_list = []
+        for post in posts:
+            post_list.append({
+                "id": post[0],
+                "created_at": post[1],
+                "description": post[2],
+                "details": post[3],
+                "image_url": post[4],
+                "phone": post[5],
+                "shg_id": post[6],
+                "shg_name": post[7]
+            })
+        
+        return post_list
+
+    except Exception as e:
+        print(f"Error fetching posts: {e}")
+        return []
+
+    finally:
+        release_db_connection(db)
+
+
+
+def get_post_by_shg_id(shg_id):
+    """
+    Fetches posts for a given SHG ID.
+    """
+    db = get_db_connection()
+    try:
+        query = """
+        SELECT * FROM forum
+        WHERE shg_id = %s
+        """
+        cursor = db.cursor()
+        cursor.execute(query, (shg_id,))
+        posts = cursor.fetchall()
+        cursor.close()
+
+        post_list = []
+        for post in posts:
+            post_list.append({
+                "id": post[0],
+                "created_at": post[1],
+                "description": post[2],
+                "details": post[3],
+                "image_url": post[4],
+                "phone": post[5],
+                "shg_id": post[6],
+                "shg_name": post[7]
+            })
+
+        return post_list
+
+    except Exception as e:
+        print(f"Error fetching posts: {e}")
+        return []
+
+    finally:
+        release_db_connection(db)
