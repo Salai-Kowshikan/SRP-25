@@ -19,7 +19,7 @@ interface Order {
 }
 
 const Orders = () => {
-  const shgId = "shg_001"; // Replace with actual SHG ID
+  const shgId = "shg_001";
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {

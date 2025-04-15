@@ -11,13 +11,27 @@ const AppBar = () => {
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
 
+  const handleLogout = () => {
+    router.push("/");
+  };
+
   return (
     <>
       <Appbar.Header statusBarHeight={top}>
-        {pathname != "/" && pathname != "/Home" && <Appbar.BackAction onPress={() => router.back()} />}
+        {pathname !== "/" && pathname !== "/Users" && pathname !== "/Home" && (
+          <Appbar.BackAction onPress={() => router.back()} />
+        )}
         <Appbar.Content title="SHGConnect" titleStyle={{ fontWeight: "bold" }} />
-        <Appbar.Action icon="bell" onPress={showDialog} />
-        <Appbar.Action icon="account-circle" onPress={() => {router.push("Profile")}} />
+        {pathname !== "/" && (
+          <>
+            <Appbar.Action icon="bell" onPress={showDialog} />
+            {pathname === "/Users" || pathname === "/Profile" ? (
+              <Appbar.Action icon="logout" onPress={handleLogout} />
+            ) : (
+              <Appbar.Action icon="account-circle" onPress={() => router.push("Profile")} />
+            )}
+          </>
+        )}
       </Appbar.Header>
       
       <Portal>
@@ -35,4 +49,4 @@ const AppBar = () => {
   );
 };
 
-export default AppBar
+export default AppBar;
