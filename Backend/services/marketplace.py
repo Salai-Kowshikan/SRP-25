@@ -23,7 +23,7 @@ def search_products(query):
         search_query = """
             SELECT *
             FROM products
-            WHERE name ILIKE %s OR description ILIKE %s
+            WHERE (name ILIKE %s OR description ILIKE %s) AND on_sale = TRUE
         """
         print(f"Executing query: {search_query}")
         cursor.execute(search_query, (f"%{query}%", f"%{query}%"))
