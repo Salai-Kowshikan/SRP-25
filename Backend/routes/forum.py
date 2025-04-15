@@ -17,7 +17,7 @@ def create_post():
     details = request.form.get('details')
     image_file = request.files.get('image_file')
     phone = request.form.get('phone')
-    shg_id = request.form.get('shg_id')
+    shg_id = request.form.get('shg_id', 'shg_001')  
 
     # Get SHG name (assuming this function exists)
     shg_name = get_shg_name(shg_id)
@@ -67,4 +67,3 @@ def get_all_posts_endpoint():
         return jsonify(posts), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
