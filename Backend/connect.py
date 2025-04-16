@@ -3,6 +3,7 @@ from psycopg2 import pool
 from dotenv import load_dotenv
 import os
 from supabase import create_client
+from transformers import AutoTokenizer, AutoModel
 
 load_dotenv()
 
@@ -15,10 +16,9 @@ DBNAME = os.getenv("dbname")
 SUPABASE_URL = os.getenv("supabase_url")
 SUPABASE_KEY = os.getenv("supabase_key")
 
-# Initialize connection pool
 try:
     db_pool = psycopg2.pool.SimpleConnectionPool(
-        1, 20,  # Min and max connections
+        1, 20, 
         user=USER,
         password=PASSWORD,
         host=HOST,
@@ -37,6 +37,14 @@ try:
 except Exception as e:
     print(f"Failed to initialize Supabase client: {e}")
     supabase = None
+
+try:
+    tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+    model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+    print("Hugging Face model initialized successfully!")
+except Exception as e:
+    print(f"Failed to initialize Hugging Face model: {e}")
+    tokenizer, model = None, None
 
 def get_db_connection():
     """
@@ -60,6 +68,16 @@ def release_db_connection(connection):
             db_pool.putconn(connection)
     except Exception as e:
         print(f"Failed to release connection: {e}")
+
+def get_embedding(text):
+    """
+    Generates an embedding for the given text using the Hugging Face model.
+    """
+    if not tokenizer or not model:
+        raise Exception("Hugging Face model is not initialized.")
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
+    outputs = model(**inputs)
+    return outputs.last_hidden_state.mean(dim=1).detach().numpy().tolist()[0]
 
 if __name__ == "__main__":
     connection = get_db_connection()
