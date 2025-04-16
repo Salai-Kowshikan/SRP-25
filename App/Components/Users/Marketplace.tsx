@@ -69,14 +69,19 @@ const Marketplace = () => {
       <View style={[styles.container, !isSearchPerformed && styles.centeredContainer]}>
         {!isSearchPerformed && (
           <Text style={styles.caption}>
-            Search semantically with our intelligent vector search
+            <Text style={styles.captionBold}>
+              Search semantically with our intelligent vector search
+            </Text>
           </Text>
         )}
         <Searchbar
           placeholder="Search"
           onChangeText={setSearchQuery}
           value={searchQuery}
-          style={[styles.searchbar, isSearchPerformed && styles.searchbarTop]}
+          style={[
+            styles.searchbar,
+            isSearchPerformed ? styles.searchbarTop : styles.searchbarWide,
+          ]}
         />
         <Button mode="contained" onPress={handleSearch} style={styles.searchButton}>
           Search
@@ -149,6 +154,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 16,
     textAlign: "center",
+  },
+  captionBold: {
+    fontWeight: "bold",
+  },
+  searchbarWide: {
+    width: "80%",
+    alignSelf: "center",
+    marginBottom: 16,
   },
   searchbarTop: {
     marginBottom: 16,
