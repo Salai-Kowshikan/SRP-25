@@ -1,6 +1,6 @@
 import { View, StyleSheet, FlatList, ScrollView } from "react-native";
 import { Searchbar, Button, Card, Text, FAB } from "react-native-paper";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "@/api/api";
 import useCartStore from "@/stores/cartStore";
 import { useRouter } from "expo-router";
@@ -14,14 +14,20 @@ type Product = {
 const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [isSearchPerformed, setIsSearchPerformed] = useState(false); 
   const { cart, addToCart, removeFromCart } = useCartStore();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsSearchPerformed(false); 
+  }, []);
 
   const handleSearch = async () => {
     try {
       if (searchQuery.trim()) {
-        const response = await api.get(`/api/marketplace/search?query=${searchQuery}`);
-        setProducts(response.data.products);
+        const response = await api.post('/api/search/', { query: searchQuery });
+        setProducts(response.data);
+        setIsSearchPerformed(true); 
         console.log("Search results:", response.data);
       } else {
         setProducts([]);
@@ -60,22 +66,38 @@ const Marketplace = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
+      <View style={[styles.container, !isSearchPerformed && styles.centeredContainer]}>
+        {!isSearchPerformed && (
+          <Text style={styles.caption}>
+            Search semantically with our intelligent vector search
+          </Text>
+        )}
         <Searchbar
           placeholder="Search"
           onChangeText={setSearchQuery}
           value={searchQuery}
-          style={styles.searchbar}
+          style={[styles.searchbar, isSearchPerformed && styles.searchbarTop]}
         />
         <Button mode="contained" onPress={handleSearch} style={styles.searchButton}>
           Search
         </Button>
-        <FlatList
-          data={products}
-          keyExtractor={(item) => item.id}
-          renderItem={renderProduct}
-          contentContainerStyle={styles.list}
-        />
+        {isSearchPerformed && products.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Closest Match</Text>
+            {renderProduct({ item: products[0] })}
+            {products.length > 1 && (
+              <>
+                <Text style={styles.sectionTitle}>Other Results</Text>
+                <FlatList
+                  data={products.slice(1)}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderProduct}
+                  contentContainerStyle={styles.list}
+                />
+              </>
+            )}
+          </>
+        )}
         <FAB
           style={styles.fab}
           icon={"cart"}
@@ -112,6 +134,25 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 16,
     bottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 8,
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  caption: {
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  searchbarTop: {
+    marginBottom: 16,
+    alignSelf: "stretch",
   },
 });
 
