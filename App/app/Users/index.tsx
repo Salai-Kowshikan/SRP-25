@@ -2,6 +2,8 @@ import { BottomNavigation } from "react-native-paper";
 import { useState } from "react";
 import Marketplace from "@/Components/Users/Marketplace";
 import Orders from "@/Components/Users/Orders";
+import Forum from "@/Components/Users/Forum";
+
 const Userpage = () => {
   const [index, setIndex] = useState(0);
   const [routes] = useState([
@@ -17,11 +19,18 @@ const Userpage = () => {
       focusedIcon: "clipboard-list",
       unfocusedIcon: "clipboard-list-outline",
     },
+    {
+      key: "forum",
+      title: "Forum",
+      focusedIcon: "forum",
+      unfocusedIcon: "forum-outline",
+    },
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
     marketplace: () => <Marketplace />,
     orders: () => <Orders />,
+    forum: () => <Forum />,
   });
 
   return (

@@ -155,7 +155,7 @@ export default function ProfileScreen() {
         <DataTable>
           <DataTable.Header>
             <DataTable.Title>Name</DataTable.Title>
-            <DataTable.Title>SMS</DataTable.Title>
+            <DataTable.Title>Smartphone</DataTable.Title>
             <DataTable.Title>Actions</DataTable.Title>
           </DataTable.Header>
 

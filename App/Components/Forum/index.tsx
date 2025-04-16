@@ -5,6 +5,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   SafeAreaView,
+  Linking,
 } from "react-native";
 import {
   Text,
@@ -17,10 +18,11 @@ import {
   TextInput,
   Button,
   ActivityIndicator,
+  IconButton,
 } from "react-native-paper";
 import * as DocumentPicker from "expo-document-picker";
-import api from "../../api/api"; 
-import { useLoadingStore } from "../../stores/loadingStore"; 
+import api from "../../api/api";
+import { useLoadingStore } from "../../stores/loadingStore";
 interface Activity {
   id?: string;
   created_at: string;
@@ -59,14 +61,14 @@ export default function Forum() {
   };
 
   const fetchRecentPosts = async (): Promise<void> => {
-    setLoading(true); 
+    setLoading(true);
     try {
       const response = await api.get<Activity[]>("/api/forum/posts");
       setRecentActivities(response.data);
     } catch (error) {
       console.error("Error fetching recent posts:", error);
     } finally {
-      resetLoading(); 
+      resetLoading();
     }
   };
 
@@ -94,7 +96,7 @@ export default function Forum() {
         uri: image.uri,
         name: image.name,
         type: image.type,
-      } as any); 
+      } as any);
     }
 
     console.log("FormData:", formData);
@@ -176,6 +178,16 @@ export default function Forum() {
               <Card.Title
                 title={activity.shg_name}
                 subtitle={activity.created_at}
+                right={() =>
+                  activity.phone && (
+                    <IconButton
+                      icon="phone"
+                      size={20}
+                      onPress={() => Linking.openURL(`tel:${activity.phone}`)}
+                      style={styles.phoneIcon}
+                    />
+                  )
+                }
               />
               <Card.Cover
                 source={{
@@ -276,5 +288,8 @@ const styles = StyleSheet.create({
   readMore: {
     marginTop: 8,
     fontWeight: "bold",
+  },
+  phoneIcon: {
+    marginRight: 10,
   },
 });
